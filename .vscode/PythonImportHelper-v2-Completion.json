@@ -1,0 +1,749 @@
+[
+    {
+        "label": "django.db.models.deletion",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "django.db.models.deletion",
+        "description": "django.db.models.deletion",
+        "detail": "django.db.models.deletion",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "AppConfig",
+        "importPath": "django.apps",
+        "description": "django.apps",
+        "isExtraImport": true,
+        "detail": "django.apps",
+        "documentation": {}
+    },
+    {
+        "label": "BonCommande",
+        "importPath": "chantier.models",
+        "description": "chantier.models",
+        "isExtraImport": true,
+        "detail": "chantier.models",
+        "documentation": {}
+    },
+    {
+        "label": "Chantier",
+        "importPath": "chantier.models",
+        "description": "chantier.models",
+        "isExtraImport": true,
+        "detail": "chantier.models",
+        "documentation": {}
+    },
+    {
+        "label": "FilterSet",
+        "importPath": "django_filters.rest_framework",
+        "description": "django_filters.rest_framework",
+        "isExtraImport": true,
+        "detail": "django_filters.rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "DateFilter",
+        "importPath": "django_filters.rest_framework",
+        "description": "django_filters.rest_framework",
+        "isExtraImport": true,
+        "detail": "django_filters.rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "CharFilter",
+        "importPath": "django_filters.rest_framework",
+        "description": "django_filters.rest_framework",
+        "isExtraImport": true,
+        "detail": "django_filters.rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "DjangoFilterBackend",
+        "importPath": "django_filters.rest_framework",
+        "description": "django_filters.rest_framework",
+        "isExtraImport": true,
+        "detail": "django_filters.rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "Q",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "Sum",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "F",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "serializers",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "viewsets",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "status",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "TestCase",
+        "importPath": "django.test",
+        "description": "django.test",
+        "isExtraImport": true,
+        "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "include",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "BonCommandeFilter",
+        "importPath": "chantier.filters",
+        "description": "chantier.filters",
+        "isExtraImport": true,
+        "detail": "chantier.filters",
+        "documentation": {}
+    },
+    {
+        "label": "Response",
+        "importPath": "rest_framework.response",
+        "description": "rest_framework.response",
+        "isExtraImport": true,
+        "detail": "rest_framework.response",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "APIView",
+        "importPath": "rest_framework.views",
+        "description": "rest_framework.views",
+        "isExtraImport": true,
+        "detail": "rest_framework.views",
+        "documentation": {}
+    },
+    {
+        "label": "NotFound",
+        "importPath": "rest_framework.exceptions",
+        "description": "rest_framework.exceptions",
+        "isExtraImport": true,
+        "detail": "rest_framework.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "api_view",
+        "importPath": "rest_framework.decorators",
+        "description": "rest_framework.decorators",
+        "isExtraImport": true,
+        "detail": "rest_framework.decorators",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "get_asgi_application",
+        "importPath": "django.core.asgi",
+        "description": "django.core.asgi",
+        "isExtraImport": true,
+        "detail": "django.core.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "DefaultRouter",
+        "importPath": "rest_framework.routers",
+        "description": "rest_framework.routers",
+        "isExtraImport": true,
+        "detail": "rest_framework.routers",
+        "documentation": {}
+    },
+    {
+        "label": "ChantierViewSet",
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "isExtraImport": true,
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "ListeMateriauxViewSet",
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "isExtraImport": true,
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "BonCommandeViewSet",
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "isExtraImport": true,
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "ChantierBonCommandeViewSet",
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "isExtraImport": true,
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "get_wsgi_application",
+        "importPath": "django.core.wsgi",
+        "description": "django.core.wsgi",
+        "isExtraImport": true,
+        "detail": "django.core.wsgi",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "chantier.migrations.0001_initial",
+        "description": "chantier.migrations.0001_initial",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Chantier',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),\n                ('numero', models.CharField(max_length=50, unique=True)),",
+        "detail": "chantier.migrations.0001_initial",
+        "documentation": {}
+    },
+    {
+        "label": "ChantierConfig",
+        "kind": 6,
+        "importPath": "chantier.apps",
+        "description": "chantier.apps",
+        "peekOfCode": "class ChantierConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'chantier'",
+        "detail": "chantier.apps",
+        "documentation": {}
+    },
+    {
+        "label": "BonCommandeFilter",
+        "kind": 6,
+        "importPath": "chantier.filters",
+        "description": "chantier.filters",
+        "peekOfCode": "class BonCommandeFilter(FilterSet):\n    date_min = DateFilter(field_name=\"date\", lookup_expr='gte')  # Date après ou égale\n    date_max = DateFilter(field_name=\"date\", lookup_expr='lte')  # Date avant ou égale\n    reference = CharFilter(method='filter_reference')  # Recherche partielle\n    chantier = CharFilter(field_name=\"chantier__id\")  # Filtrer par ID de chantier\n    class Meta:\n        model = BonCommande\n        fields = ['date', 'reference', 'chantier']\n    def filter_reference(self, queryset, name, value):\n        respone = queryset.filter(",
+        "detail": "chantier.filters",
+        "documentation": {}
+    },
+    {
+        "label": "Chantier",
+        "kind": 6,
+        "importPath": "chantier.models",
+        "description": "chantier.models",
+        "peekOfCode": "class Chantier(models.Model):\n    numero = models.CharField(max_length=50, unique=True)\n    nom = models.CharField(max_length=100, blank=True)\n    @property\n    def cout_total_materiaux(self):\n        return sum(bon.cout_total for bon in self.bons_commande.all())\n    @property\n    def cout_total_main_oeuvre(self):\n        # Placeholder for main d'oeuvre logic\n        return 0",
+        "detail": "chantier.models",
+        "documentation": {}
+    },
+    {
+        "label": "ListeMateriaux",
+        "kind": 6,
+        "importPath": "chantier.models",
+        "description": "chantier.models",
+        "peekOfCode": "class ListeMateriaux(models.Model):\n    name = models.CharField(max_length=50, unique=True)\n    prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2)\n    def __str__(self):\n        return self.name\nclass BonCommande(models.Model):\n    reference = models.CharField(max_length=100, unique=True)\n    date = models.DateField()\n    chantier = models.ForeignKey(Chantier, on_delete=models.CASCADE, related_name='bons_commande')\n    @property",
+        "detail": "chantier.models",
+        "documentation": {}
+    },
+    {
+        "label": "BonCommande",
+        "kind": 6,
+        "importPath": "chantier.models",
+        "description": "chantier.models",
+        "peekOfCode": "class BonCommande(models.Model):\n    reference = models.CharField(max_length=100, unique=True)\n    date = models.DateField()\n    chantier = models.ForeignKey(Chantier, on_delete=models.CASCADE, related_name='bons_commande')\n    @property\n    def cout_total(self):\n        return sum(item.cout_total for item in self.materiaux.all())\nclass MateriauBonCommande(models.Model):\n    bon_commande = models.ForeignKey(BonCommande, on_delete=models.CASCADE, related_name='materiaux')\n    materiau = models.ForeignKey(ListeMateriaux, on_delete=models.CASCADE)",
+        "detail": "chantier.models",
+        "documentation": {}
+    },
+    {
+        "label": "MateriauBonCommande",
+        "kind": 6,
+        "importPath": "chantier.models",
+        "description": "chantier.models",
+        "peekOfCode": "class MateriauBonCommande(models.Model):\n    bon_commande = models.ForeignKey(BonCommande, on_delete=models.CASCADE, related_name='materiaux')\n    materiau = models.ForeignKey(ListeMateriaux, on_delete=models.CASCADE)\n    quantite = models.DecimalField(max_digits=10, decimal_places=2)\n    unite = models.CharField(max_length=20, choices=[('kg', 'Kilogramme'), ('tonne', 'Tonne'), ('m³', 'Mètre cube')])\n    @property\n    def cout_total(self):\n        return self.quantite * self.materiau.prix_unitaire",
+        "detail": "chantier.models",
+        "documentation": {}
+    },
+    {
+        "label": "ListeMateriauxSerializer",
+        "kind": 6,
+        "importPath": "chantier.serializers",
+        "description": "chantier.serializers",
+        "peekOfCode": "class ListeMateriauxSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = ListeMateriaux\n        fields = '__all__'\nclass ChantierSerializer(serializers.ModelSerializer):\n    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    class Meta:\n        model = Chantier\n        fields = ['id', 'numero', 'nom', 'cout_total_materiaux', 'cout_total_main_oeuvre']",
+        "detail": "chantier.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "ChantierSerializer",
+        "kind": 6,
+        "importPath": "chantier.serializers",
+        "description": "chantier.serializers",
+        "peekOfCode": "class ChantierSerializer(serializers.ModelSerializer):\n    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    class Meta:\n        model = Chantier\n        fields = ['id', 'numero', 'nom', 'cout_total_materiaux', 'cout_total_main_oeuvre']\nclass ChantierMateriauxCostSerializer(serializers.Serializer):\n    chantier_name = serializers.CharField()\n    total_materiaux_cost = serializers.DecimalField(max_digits=10, decimal_places=2)\n    materiaux_cout = serializers.ListField(",
+        "detail": "chantier.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "ChantierMateriauxCostSerializer",
+        "kind": 6,
+        "importPath": "chantier.serializers",
+        "description": "chantier.serializers",
+        "peekOfCode": "class ChantierMateriauxCostSerializer(serializers.Serializer):\n    chantier_name = serializers.CharField()\n    total_materiaux_cost = serializers.DecimalField(max_digits=10, decimal_places=2)\n    materiaux_cout = serializers.ListField(\n        child=serializers.DictField(\n            child=serializers.CharField()\n        )\n    )\nclass ManualMaterialSerializer(serializers.Serializer):\n    name = serializers.CharField(max_length=255)",
+        "detail": "chantier.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "ManualMaterialSerializer",
+        "kind": 6,
+        "importPath": "chantier.serializers",
+        "description": "chantier.serializers",
+        "peekOfCode": "class ManualMaterialSerializer(serializers.Serializer):\n    name = serializers.CharField(max_length=255)\n    price = serializers.DecimalField(max_digits=10, decimal_places=2)\n    quantity = serializers.DecimalField(max_digits=10, decimal_places=2)\n    unit = serializers.CharField(max_length=50)\nclass MateriauBonCommandeSerializer(serializers.ModelSerializer):\n    materiau = serializers.PrimaryKeyRelatedField(queryset=ListeMateriaux.objects.all())\n    materiau_name = serializers.CharField(source='materiau.name', read_only=True)\n    cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    class Meta:",
+        "detail": "chantier.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "MateriauBonCommandeSerializer",
+        "kind": 6,
+        "importPath": "chantier.serializers",
+        "description": "chantier.serializers",
+        "peekOfCode": "class MateriauBonCommandeSerializer(serializers.ModelSerializer):\n    materiau = serializers.PrimaryKeyRelatedField(queryset=ListeMateriaux.objects.all())\n    materiau_name = serializers.CharField(source='materiau.name', read_only=True)\n    cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    class Meta:\n        model = MateriauBonCommande\n        fields = ['id', 'materiau','materiau_name', 'quantite', 'unite', 'cout_total']\nclass BonCommandeSerializer(serializers.ModelSerializer):\n    materiaux = MateriauBonCommandeSerializer(many=True)\n    cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)",
+        "detail": "chantier.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "BonCommandeSerializer",
+        "kind": 6,
+        "importPath": "chantier.serializers",
+        "description": "chantier.serializers",
+        "peekOfCode": "class BonCommandeSerializer(serializers.ModelSerializer):\n    materiaux = MateriauBonCommandeSerializer(many=True)\n    cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    chantier_name = serializers.CharField(source='chantier.nom', read_only=True)\n    chantier_numero = serializers.CharField(source='chantier.numero', read_only=True)\n    chantier = serializers.PrimaryKeyRelatedField(queryset=Chantier.objects.all())\n    cout_total_chantier = serializers.DecimalField(max_digits=10, decimal_places=2,source='chantier.cout_total_materiaux', read_only=True)\n    class Meta:\n        model = BonCommande\n        fields = ['id', 'reference', 'date','chantier', 'chantier_name','chantier_numero', 'materiaux', 'cout_total','cout_total_chantier']",
+        "detail": "chantier.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "chantier.urls",
+        "description": "chantier.urls",
+        "peekOfCode": "urlpatterns = [\n    path('chantier/<int:chantier_id>/bons-commande/', views.ChantierBonCommandeViewSet.as_view({'get': 'list'})),\n    path('bon-commande/<int:bon_commande_id>/', views.BonCommandeDetailView.as_view(), name='bon-commande-detail'),\n    path('bon-commande/<int:bon_commande_id>/materiaux/<int:materiau_id>/', views.MateriauBonCommandeDetailView.as_view(), name='materiau-bon-commande-detail'),\n    path('bon-commandes/<int:bon_commande_id>/materiaux/', views.add_materiau_to_bon_commande, name='add_materiau_to_bon_commande'),\n    path('bon-commandes/<int:bon_commande_id>/materiaux/<int:materiau_id>/', views.delete_materiau_from_bon_commande, name='delete_materiau_from_bon_commande'),\n    path('chantier/<int:chantier_id>/materiaux-cost/', views.ChantierMateriauxTotalsView.as_view(), name='chantier-materiaux-cost'),\n]",
+        "detail": "chantier.urls",
+        "documentation": {}
+    },
+    {
+        "label": "ChantierViewSet",
+        "kind": 6,
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "peekOfCode": "class ChantierViewSet(viewsets.ModelViewSet):\n    queryset = Chantier.objects.all()\n    serializer_class = ChantierSerializer\nclass ListeMateriauxViewSet(viewsets.ModelViewSet):\n    queryset = ListeMateriaux.objects.all()\n    serializer_class = ListeMateriauxSerializer\nfrom django_filters.rest_framework import DjangoFilterBackend\nclass BonCommandeViewSet(viewsets.ModelViewSet):\n    queryset = BonCommande.objects.all()\n    serializer_class = BonCommandeSerializer",
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "ListeMateriauxViewSet",
+        "kind": 6,
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "peekOfCode": "class ListeMateriauxViewSet(viewsets.ModelViewSet):\n    queryset = ListeMateriaux.objects.all()\n    serializer_class = ListeMateriauxSerializer\nfrom django_filters.rest_framework import DjangoFilterBackend\nclass BonCommandeViewSet(viewsets.ModelViewSet):\n    queryset = BonCommande.objects.all()\n    serializer_class = BonCommandeSerializer\n    filter_backends = [DjangoFilterBackend]\n    filterset_class = BonCommandeFilter\nfrom rest_framework.response import Response",
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "BonCommandeViewSet",
+        "kind": 6,
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "peekOfCode": "class BonCommandeViewSet(viewsets.ModelViewSet):\n    queryset = BonCommande.objects.all()\n    serializer_class = BonCommandeSerializer\n    filter_backends = [DjangoFilterBackend]\n    filterset_class = BonCommandeFilter\nfrom rest_framework.response import Response\nclass ChantierBonCommandeViewSet(viewsets.ViewSet):\n    def list(self, request, chantier_id=None):\n        chantier = Chantier.objects.get(id=chantier_id)\n        bons_commande = BonCommande.objects.filter(chantier=chantier)",
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "ChantierBonCommandeViewSet",
+        "kind": 6,
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "peekOfCode": "class ChantierBonCommandeViewSet(viewsets.ViewSet):\n    def list(self, request, chantier_id=None):\n        chantier = Chantier.objects.get(id=chantier_id)\n        bons_commande = BonCommande.objects.filter(chantier=chantier)\n        serializer = BonCommandeSerializer(bons_commande, many=True)\n        return Response(serializer.data)\nfrom django.shortcuts import get_object_or_404\nfrom rest_framework.views import APIView\nfrom rest_framework import status\nclass BonCommandeDetailView(APIView):",
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "BonCommandeDetailView",
+        "kind": 6,
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "peekOfCode": "class BonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id):\n        # Récupérer le bon de commande par ID\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        serializer = BonCommandeSerializer(bon_commande)\n        return Response(serializer.data)\n    def put(self, request, bon_commande_id):\n        # Récupérer le bon de commande par ID\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        serializer = BonCommandeSerializer(bon_commande, data=request.data, partial=True)",
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "ChantierMateriauxTotalsView",
+        "kind": 6,
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "peekOfCode": "class ChantierMateriauxTotalsView(APIView):\n   def get(self, request, chantier_id, *args, **kwargs):\n        try:\n            # Récupérer le chantier\n            chantier = Chantier.objects.get(id=chantier_id)\n            # Récupérer les bons de commande associés au chantier\n            bons_commandes = BonCommande.objects.filter(chantier=chantier).prefetch_related('materiaux')\n            # Initialiser un dictionnaire pour regrouper les matériaux par ID\n            materiaux_totaux = {}\n            for bon in bons_commandes:",
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "MateriauBonCommandeDetailView",
+        "kind": 6,
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "peekOfCode": "class MateriauBonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id, materiau_id):\n        try:\n            # Vérifier que le bon de commande existe\n            bon_commande = BonCommande.objects.get(id=bon_commande_id)\n        except BonCommande.DoesNotExist:\n            raise NotFound(\"Bon de commande non trouvé.\")\n        try:\n            # Vérifier que le matériau existe dans ce bon de commande\n            materiau = MateriauBonCommande.objects.get(id=materiau_id, bon_commande=bon_commande)",
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "add_materiau_to_bon_commande",
+        "kind": 2,
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "peekOfCode": "def add_materiau_to_bon_commande(request, bon_commande_id):\n    try:\n        bon_commande = BonCommande.objects.get(id=bon_commande_id)\n    except BonCommande.DoesNotExist:\n        return Response({\"error\": \"Bon de commande non trouvé\"}, status=status.HTTP_404_NOT_FOUND)\n    materiau_id = request.data.get('materiau_id')\n    quantite = request.data.get('quantite')\n    unite = request.data.get('unite')\n    # Récupérer le matériau\n    try:",
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "delete_materiau_from_bon_commande",
+        "kind": 2,
+        "importPath": "chantier.views",
+        "description": "chantier.views",
+        "peekOfCode": "def delete_materiau_from_bon_commande(request, bon_commande_id, materiau_id):\n    try:\n        # Récupérer le bon de commande et le matériau\n        bon_commande_materiau = MateriauBonCommande.objects.get(id=materiau_id)\n    except MateriauBonCommande.DoesNotExist:\n        return Response({\"error\": \"Matériau non trouvé dans ce bon de commande.\"}, status=status.HTTP_404_NOT_FOUND)\n    # Supprimer le matériau\n    bon_commande_materiau.delete()\n    # Retourner une réponse réussie\n    return Response({\"message\": \"Matériau supprimé avec succès.\"}, status=status.HTTP_204_NO_CONTENT)",
+        "detail": "chantier.views",
+        "documentation": {}
+    },
+    {
+        "label": "application",
+        "kind": 5,
+        "importPath": "chantier_backend.asgi",
+        "description": "chantier_backend.asgi",
+        "peekOfCode": "application = get_asgi_application()",
+        "detail": "chantier_backend.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "BASE_DIR",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-ayi5$ceiyzg%-wd1^l%fh10l23f+*k0rvs73x4_1mpbibm#c!='\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\nCORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SECRET_KEY",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "SECRET_KEY = 'django-insecure-ayi5$ceiyzg%-wd1^l%fh10l23f+*k0rvs73x4_1mpbibm#c!='\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\nCORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DEBUG",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "DEBUG = True\nALLOWED_HOSTS = []\nCORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ALLOWED_HOSTS",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "ALLOWED_HOSTS = []\nCORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CORS_ALLOWED_ORIGINS",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "CORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CORS_ALLOW_ALL_ORIGINS",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "CORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    'chantier',",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "INSTALLED_APPS",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "INSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    'chantier',\n    'rest_framework',\n    'django_filters',",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "MIDDLEWARE",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "MIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n    'corsheaders.middleware.CorsMiddleware',\n]",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ROOT_URLCONF",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "ROOT_URLCONF = 'chantier_backend.urls'\nTEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': [],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.debug',\n                'django.template.context_processors.request',",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "TEMPLATES",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "TEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': [],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.debug',\n                'django.template.context_processors.request',\n                'django.contrib.auth.context_processors.auth',",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "REST_FRAMEWORK",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "REST_FRAMEWORK = {\n    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],\n}\nWSGI_APPLICATION = 'chantier_backend.wsgi.application'\n# Database\n# https://docs.djangoproject.com/en/5.0/ref/settings/#databases\nDATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': BASE_DIR / 'db.sqlite3',",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "WSGI_APPLICATION",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "WSGI_APPLICATION = 'chantier_backend.wsgi.application'\n# Database\n# https://docs.djangoproject.com/en/5.0/ref/settings/#databases\nDATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': BASE_DIR / 'db.sqlite3',\n    }\n}\n# Password validation",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DATABASES",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "DATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': BASE_DIR / 'db.sqlite3',\n    }\n}\n# Password validation\n# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators\nAUTH_PASSWORD_VALIDATORS = [\n    {",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "AUTH_PASSWORD_VALIDATORS",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "AUTH_PASSWORD_VALIDATORS = [\n    {\n        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',\n    },",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "LANGUAGE_CODE",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "LANGUAGE_CODE = 'en-us'\nTIME_ZONE = 'UTC'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "TIME_ZONE",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "TIME_ZONE = 'UTC'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "USE_I18N",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "USE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "USE_TZ",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "USE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "STATIC_URL",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "STATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_AUTO_FIELD",
+        "kind": 5,
+        "importPath": "chantier_backend.settings",
+        "description": "chantier_backend.settings",
+        "peekOfCode": "DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'",
+        "detail": "chantier_backend.settings",
+        "documentation": {}
+    },
+    {
+        "label": "router",
+        "kind": 5,
+        "importPath": "chantier_backend.urls",
+        "description": "chantier_backend.urls",
+        "peekOfCode": "router = DefaultRouter()\nrouter.register(r'chantiers', ChantierViewSet)\nrouter.register(r'materiaux', ListeMateriauxViewSet)\nrouter.register(r'bons-commande', BonCommandeViewSet)\nurlpatterns = [\n    path('admin/', admin.site.urls),\n    path('api/', include(router.urls)),\n    path('api/',include('chantier.urls')),\n    path('api/chantier/<int:chantier_id>/bons-commande/', ChantierBonCommandeViewSet.as_view({'get': 'list'})),\n]",
+        "detail": "chantier_backend.urls",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "chantier_backend.urls",
+        "description": "chantier_backend.urls",
+        "peekOfCode": "urlpatterns = [\n    path('admin/', admin.site.urls),\n    path('api/', include(router.urls)),\n    path('api/',include('chantier.urls')),\n    path('api/chantier/<int:chantier_id>/bons-commande/', ChantierBonCommandeViewSet.as_view({'get': 'list'})),\n]",
+        "detail": "chantier_backend.urls",
+        "documentation": {}
+    },
+    {
+        "label": "application",
+        "kind": 5,
+        "importPath": "chantier_backend.wsgi",
+        "description": "chantier_backend.wsgi",
+        "peekOfCode": "application = get_wsgi_application()",
+        "detail": "chantier_backend.wsgi",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "manage",
+        "description": "manage",
+        "peekOfCode": "def main():\n    \"\"\"Run administrative tasks.\"\"\"\n    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chantier_backend.settings')\n    try:\n        from django.core.management import execute_from_command_line\n    except ImportError as exc:\n        raise ImportError(\n            \"Couldn't import Django. Are you sure it's installed and \"\n            \"available on your PYTHONPATH environment variable? Did you \"\n            \"forget to activate a virtual environment?\"",
+        "detail": "manage",
+        "documentation": {}
+    }
+]
