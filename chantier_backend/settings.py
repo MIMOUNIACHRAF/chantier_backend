@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ayi5$ceiyzg%-wd1^l%fh10l23f+*k0rvs73x4_1mpbibm#c!=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",  # Origine de votre application Angular
 ]

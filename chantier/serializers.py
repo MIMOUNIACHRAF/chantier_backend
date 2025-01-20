@@ -1,78 +1,304 @@
 from rest_framework import serializers
-from .models import Chantier, ListeMateriaux, BonCommande, MateriauBonCommande
+from .models import (Chantier, ListeMateriaux, BonCommande, MateriauBonCommande,
+                    PartieChantier,OptionMateriau,Paiement)
+from django.db.models import Sum,F
 
+class OptionMateriauSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OptionMateriau
+        fields = ['id','name','valeur','type','materiau']
+    
+    def create(self, validated_data):
+        materiau = validated_data.get('materiau')  # Vérifier si le materiau est dans les données validées
+        if not materiau:
+            raise serializers.ValidationError("Le champ 'materiau' est requis.")
+        
+        # Créer l'option et l'associer au materiau
+        option = OptionMateriau.objects.create(**validated_data)
 
+        return option
+        
 class ListeMateriauxSerializer(serializers.ModelSerializer):
+    options = OptionMateriauSerializer(many=True, read_only=True)
     class Meta:
         model = ListeMateriaux
-        fields = '__all__'
+        fields = ['id', 'code', 'name', 'type', 'options']
+    def update(self, instance, validated_data):
+        options_data = validated_data.pop('options', [])
+        # Mettre à jour les autres champs de ListeMateriaux
+        instance = super().update(instance, validated_data)
         
+        # Mettre à jour les options
+        for option_data in options_data:
+            option_id = option_data.get('id', None)
+            if option_id:
+                option = OptionMateriau.objects.get(id=option_id)
+                option.valeur = option_data['valeur']
+                option.save()
+            else:
+                # Si c'est une nouvelle option, la créer
+                OptionMateriau.objects.create(liste_materiau=instance, **option_data)
+        
+        return instance
+
+
+from rest_framework import serializers
+from .models import Chantier, MateriauBonCommande
+
 class ChantierSerializer(serializers.ModelSerializer):
-    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    cout_total_materiaux = serializers.ReadOnlyField()
+    cout_total_main_oeuvre = serializers.ReadOnlyField()
+    cout_total_materiaux_finition = serializers.ReadOnlyField()
+    cout_total_materiaux_gros_oeuvre = serializers.ReadOnlyField()
+    cout_total_main_oeuvre_gros_oeuvre = serializers.ReadOnlyField()
+    cout_total_main_oeuvre_finition = serializers.ReadOnlyField()
+    cout_total_global = serializers.SerializerMethodField()
+    # cout_total_espece = serializers.ReadOnlyField()
+    # cout_total_global = serializers.ReadOnlyField()
 
     class Meta:
         model = Chantier
-        fields = ['id', 'numero', 'nom', 'cout_total_materiaux', 'cout_total_main_oeuvre']
+        fields = ['id', 'numero', 'nom', 'cout_total_materiaux', 'cout_total_main_oeuvre','cout_total_materiaux_gros_oeuvre','cout_total_materiaux_finition','cout_total_main_oeuvre_finition','cout_total_main_oeuvre_gros_oeuvre', 
+                  'cout_total_global',]
 
-class ChantierMateriauxCostSerializer(serializers.Serializer):
-    chantier_name = serializers.CharField()
-    total_materiaux_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
-    materiaux_cout = serializers.ListField(
-        child=serializers.DictField(
-            child=serializers.CharField()
-        )
-    )
-class ManualMaterialSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=255)
-    price = serializers.DecimalField(max_digits=10, decimal_places=2)
-    quantity = serializers.DecimalField(max_digits=10, decimal_places=2)
-    unit = serializers.CharField(max_length=50)
+    def get_cout_total_global(self, obj):
+        # Somme des matériaux et de la main-d'œuvre
+        return obj.cout_total_materiaux + obj.cout_total_main_oeuvre
+
+class PaiementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Paiement
+        fields = ['id', 'type_paiement', 'date_paiement', 'numero_cheque', 'nom_banque']
+
+    def validate(self, data):
+        if data['type_paiement'] == 'cheque':
+            if not data.get('numero_cheque'):
+                raise serializers.ValidationError("Le numéro de chèque est requis pour un paiement par chèque.")
+            if not data.get('nom_banque'):
+                raise serializers.ValidationError("Le nom de la banque est requis pour un paiement par chèque.")
+        elif data['type_paiement'] == 'espece':
+            if data.get('numero_cheque') or data.get('nom_banque'):
+                raise serializers.ValidationError("Les champs 'numéro de chèque' et 'nom de banque' ne sont pas valides pour un paiement en espèces.")
+        return data
+
+
+class PartieChantierSerializer(serializers.ModelSerializer):
+    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    cout_total_chantier_materiaux_finition = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    cout_total_chantier_materiaux_gros_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    cout_total_main_oeuvre_finition  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True) 
+    cout_total_main_oeuvre_gros_oeuvre  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    # cout_total_espece  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    # cout_total_cheque  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    
+    class Meta:
+        model = PartieChantier
+        fields = ['id', 'chantier', 'type', 'cout_total_materiaux', 'cout_total_main_oeuvre','cout_total_chantier_materiaux_finition','cout_total_main_oeuvre_finition','cout_total_main_oeuvre_gros_oeuvre',
+                  'cout_total_chantier_materiaux_gros_oeuvre',]
+
 
 class MateriauBonCommandeSerializer(serializers.ModelSerializer):
-    materiau = serializers.PrimaryKeyRelatedField(queryset=ListeMateriaux.objects.all())
+    materiau = serializers.CharField(required=False)
     materiau_name = serializers.CharField(source='materiau.name', read_only=True)
+    type_materiau = serializers.CharField(source='materiau.type', read_only=True)
+    code = serializers.CharField(source='materiau.code', read_only=True)
     cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-
+    prix_unitaire = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    option = serializers.SerializerMethodField()
+    
+    # option_code =   serializers.CharField(source='option.valeur', read_only=True)
+    
     class Meta:
         model = MateriauBonCommande
-        fields = ['id', 'materiau','materiau_name', 'quantite', 'unite', 'cout_total']
+        fields = ['id', 'materiau', 'materiau_name','prix_unitaire', 'quantite', 'code', 'type_materiau', 'cout_total','option']
 
+    def validate_materiau(self, value):
+        # Si la valeur est "autre", laissez la gestion au `create`
+        if value == "autre":
+            return value
+        # Vérifiez si le matériau existe dans la base
+        try:
+            return ListeMateriaux.objects.get(id=value)
+        except (ListeMateriaux.DoesNotExist, ValueError):
+            raise serializers.ValidationError("Le matériau spécifié n'existe pas.")
+    def get_option(self, obj):
+        if obj.option:
+            return {
+                "code_option": obj.option.valeur,
+                "type_option": obj.option.type,
+                "nom_option": obj.option.name,
+                "code_materiau": obj.materiau.code if obj.materiau else None,
+                "nom_materiau": obj.materiau.name if obj.materiau else None,
+                "type_materiau": obj.materiau.type if obj.materiau else None,
+            }
+        return None
 
 class BonCommandeSerializer(serializers.ModelSerializer):
-    materiaux = MateriauBonCommandeSerializer(many=True)
-    cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    chantier_name = serializers.CharField(source='chantier.nom', read_only=True)
-    chantier_numero = serializers.CharField(source='chantier.numero', read_only=True)
-    chantier = serializers.PrimaryKeyRelatedField(queryset=Chantier.objects.all())
-    cout_total_chantier = serializers.DecimalField(max_digits=10, decimal_places=2,source='chantier.cout_total_materiaux', read_only=True)
+    materiaux = MateriauBonCommandeSerializer(many=True, read_only=True)
+    paiement = PaiementSerializer()
+    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    cout_total_global_BC = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    chantier_id = serializers.CharField(source='partie.chantier.id', read_only=True)
+    chantier_name = serializers.CharField(source='partie.chantier.nom', read_only=True)
+    chantier_numero = serializers.CharField(source='partie.chantier.numero', read_only=True)
+    cout_total_chantier_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_materiaux', read_only=True)
+    cout_total_chantier_main_d_oeuvre= serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_main_oeuvre', read_only=True)
+    cout_total_chantier_global= serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_global', read_only=True)
+    cout_total_chantier_materiaux_finition = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_materiaux_finition', read_only=True)
+    cout_total_chantier_materiaux_gros_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_materiaux_gros_oeuvre', read_only=True)
+    
+    cout_total_main_oeuvre_finition  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_main_oeuvre_finition', read_only=True) 
+    cout_total_main_oeuvre_gros_oeuvre  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_main_oeuvre_gros_oeuvre', read_only=True) 
+    # cout_total_espece  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_espece', read_only=True) 
+    # cout_total_cheque  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_cheque', read_only=True) 
+    
+    partie_type = serializers.CharField(source='partie.type', read_only=True)
+    partie = serializers.CharField(write_only=True)
     class Meta:
         model = BonCommande
-        fields = ['id', 'reference', 'date','chantier', 'chantier_name','chantier_numero', 'materiaux', 'cout_total','cout_total_chantier']
-
+        fields = [  
+            'id', 'reference', 'date', 'partie','chantier_id', 'chantier_name', 
+            'chantier_numero', 'partie_type','cout_total_global_BC', 'cout_total_materiaux','cout_total_main_oeuvre',
+            'cout_total_chantier_global', 'cout_total_chantier_materiaux',
+            'cout_total_chantier_materiaux_finition',
+            'cout_total_chantier_materiaux_gros_oeuvre',
+            'cout_total_chantier_main_d_oeuvre','materiaux',
+            'cout_total_main_oeuvre_gros_oeuvre',
+            'cout_total_main_oeuvre_finition',
+             'paiement',
+        ]
+        
     def create(self, validated_data):
-        materiaux_data = validated_data.pop('materiaux',[])
-        bon_commande = BonCommande.objects.create(**validated_data)
-        for materiau_data in materiaux_data:
-            MateriauBonCommande.objects.create(bon_commande=bon_commande, **materiau_data)
+        initial_data = self.initial_data
+        chantier_id = initial_data.get('chantier_id')
+        if not chantier_id:
+            raise serializers.ValidationError("L'ID du chantier est requis.")
+        try:
+            chantier = Chantier.objects.get(id=chantier_id)
+        except Chantier.DoesNotExist:
+            raise serializers.ValidationError(f"Chantier avec ID {chantier_id} introuvable.")
+        
+        partie_type = validated_data.pop('partie', None)
+        if not partie_type:
+            raise serializers.ValidationError("Le type de partie est requis.")
+        
+        partie, created = PartieChantier.objects.get_or_create(
+            chantier=chantier,
+            type=partie_type
+        )
+        validated_data['partie'] = partie
+        materiaux_objects_list = []
+        
+        materiaux_data = initial_data.get('materiaux', [])
+        print(materiaux_data)
+        if not materiaux_data:
+            raise serializers.ValidationError("Les matériaux sont requis.")
+        paiement_data = initial_data.get('paiement', None)
+        if(materiaux_data and paiement_data):
+            bon_commande, created = BonCommande.objects.get_or_create(
+                    reference=validated_data['reference'],
+                    date=validated_data['date'],
+                    type=partie_type, 
+                    partie=validated_data['partie'])
+            paiement = Paiement.objects.create(**paiement_data)
+            bon_commande.paiement = paiement
+            bon_commande.save()
+        materiaux_objects = []
+        for materiau in materiaux_data:
+            if materiau['materiau'] == 'autre':
+                liste_materiau, created = ListeMateriaux.objects.get_or_create(
+                    name=materiau['nom'],
+                    code=materiau['code'],
+                    type=materiau['type_materiau'],
+                )
+            else:
+                try:
+                    liste_materiau = ListeMateriaux.objects.get(id=materiau['materiau'])
+                except ListeMateriaux.DoesNotExist:
+                    liste_materiau = ListeMateriaux.objects.create(
+                        name=materiau['nom'],
+                        code=materiau['code'],
+                        type=materiau['type_materiau'],
+                    )
+            if(materiau['option_valeur']):
+                if materiau['option_valeur']=='autre':
+                    option_valeur ,created = OptionMateriau.objects.get_or_create(
+                        materiau=liste_materiau,
+                        valeur=materiau['option_valeur']
+                    )
+                else:
+                    try:
+                        option_valeur = OptionMateriau.objects.get(id=materiau['option_valeur'])
+                    except OptionMateriau.DoesNotExist:
+                        option_valeur = OptionMateriau.objects.create(
+                            materiau=liste_materiau,
+                            valeur=materiau['option_valeur'])
+            else:
+                option_valeur = None
+            # if(materiau['paiement']):
+            #     if materiau['paiement']=='autre':
+                    
+            materiaux_objects_list.append(liste_materiau)
+            materiau_obj = MateriauBonCommande(
+                bon_commande=bon_commande,
+                materiau=liste_materiau,
+                quantite=materiau['quantite'],
+                prix_unitaire=materiau['prix_unitaire'],
+                option = option_valeur,
+            )
+            materiaux_objects.append(materiau_obj)
+            
+        MateriauBonCommande.objects.bulk_create(materiaux_objects)
         return bon_commande
+    
     def update(self, instance, validated_data):
-        # Mise à jour des matériaux
         materiaux_data = validated_data.pop('materiaux', None)
         
         if materiaux_data is not None:
-            # Supprimer les anciens matériaux associés
-            instance.materiaux.all().delete()
-            
-            # Ajouter les nouveaux matériaux
+            existing_ids = {item.id for item in instance.materiaux.all()}
+            new_ids = {materiau['id'] for materiau in materiaux_data if 'id' in materiau}
+
+            # Supprimer les matériaux non présents dans les nouvelles données
+            MateriauBonCommande.objects.filter(bon_commande=instance).exclude(id__in=new_ids).delete()
+
+            # Créer ou mettre à jour les matériaux existants
             for materiau_data in materiaux_data:
-                MateriauBonCommande.objects.create(bon_commande=instance, **materiau_data)
-        
-        # Mettre à jour les autres champs du bon de commande
+                materiau_id = materiau_data.pop('id', None)
+                if materiau_id and materiau_id in existing_ids:
+                    MateriauBonCommande.objects.filter(id=materiau_id).update(**materiau_data)
+                else:
+                    MateriauBonCommande.objects.create(bon_commande=instance, **materiau_data)
+                    
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        
+
         instance.save()
         return instance
 
+
+class MateriauTotalSerializer(serializers.Serializer):
+    material_name = serializers.CharField()
+    material_type = serializers.CharField()
+    bon_commande_type =  serializers.CharField()
+    total_quantite = serializers.DecimalField(max_digits=10, decimal_places=2)
+    total_cout = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+# class ChantierMateriauxCostSerializer(serializers.Serializer):
+#     chantier_name = serializers.CharField()
+#     total_materiaux_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
+#     materiaux_cout = serializers.SerializerMethodField()
+
+#     def get_materiaux_cout(self, obj):
+#         materiaux = MateriauBonCommande.objects.filter(bon_commande__partie__chantier=obj)
+#         return [
+#             {
+#                 "materiau": item.materiau.name if item.materiau else "Personnalisé",
+#                 "quantite": item.quantite,
+#                 "prix_unitaire": item.prix_unitaire,
+#                 "cout_total": item.cout_total
+#             }
+#             for item in materiaux
+#         ]
 

@@ -1,188 +1,224 @@
 from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.decorators import api_view
+from django.shortcuts import get_object_or_404
+from .models import (
+    Chantier,
+    PartieChantier,
+    ListeMateriaux,
+    BonCommande,
+    MateriauBonCommande,
+    OptionMateriau
+)
+from .serializers import (
+    ChantierSerializer,
+    PartieChantierSerializer,
+    ListeMateriauxSerializer,
+    BonCommandeSerializer,
+    MateriauBonCommandeSerializer
+)
+from chantier.filters import BonCommandeFilter,ListeMateriauxFilter
 
-from chantier.filters import BonCommandeFilter
-from .models import Chantier, ListeMateriaux, BonCommande, MateriauBonCommande
-from .serializers import ChantierSerializer, ListeMateriauxSerializer, BonCommandeSerializer
+from .serializers import OptionMateriauSerializer
+
+@api_view(['GET'])
+def get_options_by_materiau(request, materiau_id):
+    try:
+        # Récupérer le matériau à partir de son ID
+        materiau = ListeMateriaux.objects.get(id=materiau_id)
+    except ListeMateriaux.DoesNotExist:
+        return Response({'detail': 'Materiau not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Récupérer les options associées au matériau
+    options = materiau.options.all()
+
+    # Sérialiser les options
+    serializer = OptionMateriauSerializer(options, many=True)
+
+    # Retourner les options sous forme de réponse JSON
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# Gestion des chantiers
 class ChantierViewSet(viewsets.ModelViewSet):
     queryset = Chantier.objects.all()
     serializer_class = ChantierSerializer
 
 
+class OptionMateriauViewSet(viewsets.ModelViewSet):
+    queryset = OptionMateriau.objects.all()
+    serializer_class = OptionMateriauSerializer
+
+# Gestion des parties de chantier (gros œuvre et finition)
+class PartieChantierViewSet(viewsets.ModelViewSet):
+    queryset = PartieChantier.objects.all()
+    serializer_class = PartieChantierSerializer
+
+
+# Gestion des matériaux
 class ListeMateriauxViewSet(viewsets.ModelViewSet):
     queryset = ListeMateriaux.objects.all()
     serializer_class = ListeMateriauxSerializer
-    
-from django_filters.rest_framework import DjangoFilterBackend
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = ListeMateriauxFilter 
+    def create(self, request, *args, **kwargs):
+        # Custom creation logic to handle options
+        return super().create(request, *args, **kwargs)
 
+    def update(self, request, *args, **kwargs):
+        # Custom update logic to handle options
+        return super().update(request, *args, **kwargs)
+    # def get_queryset(self):
+    #     queryset = ListeMateriaux.objects.all()
+    #     type_materiau = self.request.query_params.get('type', None)
+    #     if type_materiau:
+    #         queryset = queryset.filter(type=type_materiau)
+    #     return queryset
+
+@api_view(['POST', 'PUT'])
+def add_or_update_option(request, materiau_id):
+    try:
+        materiau = ListeMateriaux.objects.get(id=materiau_id)
+    except ListeMateriaux.DoesNotExist:
+        return Response({"detail": "Materiau not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Si c'est une requête POST, on ajoute une nouvelle option
+    if request.method == 'POST':
+        serializer = OptionMateriauSerializer(data=request.data)
+        if serializer.is_valid():
+            # Relier l'option au matériau avant de sauvegarder
+            option = serializer.save(materiau=materiau)  # Relier l'option au matériau
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Si c'est une requête PUT, on met à jour une option existante
+    elif request.method == 'PUT':
+        option_id = request.data.get('id')
+        try:
+            option = OptionMateriau.objects.get(id=option_id, materiau=materiau)
+        except OptionMateriau.DoesNotExist:
+            return Response({"detail": "Option not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = OptionMateriauSerializer(option, data=request.data)
+        if serializer.is_valid():
+            serializer.save()  # Sauvegarde de l'option mise à jour
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Gestion des bons de commande
 class BonCommandeViewSet(viewsets.ModelViewSet):
     queryset = BonCommande.objects.all()
     serializer_class = BonCommandeSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = BonCommandeFilter
 
-    
-from rest_framework.response import Response
+
+# Vue pour récupérer les bons de commande d'un chantier
 class ChantierBonCommandeViewSet(viewsets.ViewSet):
     def list(self, request, chantier_id=None):
-        chantier = Chantier.objects.get(id=chantier_id)
-        bons_commande = BonCommande.objects.filter(chantier=chantier)
+        chantier = get_object_or_404(Chantier, id=chantier_id)
+        bons_commande = BonCommande.objects.filter(partie__chantier=chantier)
         serializer = BonCommandeSerializer(bons_commande, many=True)
         return Response(serializer.data)
-    
 
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from rest_framework import status
+
+# Vue pour les détails des bons de commande
 class BonCommandeDetailView(APIView):
     def get(self, request, bon_commande_id):
-        # Récupérer le bon de commande par ID
         bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
         serializer = BonCommandeSerializer(bon_commande)
         return Response(serializer.data)
 
     def put(self, request, bon_commande_id):
-        # Récupérer le bon de commande par ID
         bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
         serializer = BonCommandeSerializer(bon_commande, data=request.data, partial=True)
-        
         if serializer.is_valid():
-            # Mettre à jour le bon de commande
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from django.db.models import Sum, F
+# Vue pour les totaux de matériaux d'un chantier
 class ChantierMateriauxTotalsView(APIView):
-   def get(self, request, chantier_id, *args, **kwargs):
+    def get(self, request, chantier_id, *args, **kwargs):
         try:
             # Récupérer le chantier
             chantier = Chantier.objects.get(id=chantier_id)
 
-            # Récupérer les bons de commande associés au chantier
-            bons_commandes = BonCommande.objects.filter(chantier=chantier).prefetch_related('materiaux')
+            # Calculer les totaux pour chaque matériau
+            materiaux_totaux = (
+                MateriauBonCommande.objects
+                .filter(bon_commande__partie__chantier=chantier)
+                .values(material_name=F('materiau__name'),material_type=F('materiau__type'),option_type=F('option__type'),
+                        option_valeur=F('option__valeur'),material_code=F('materiau__code'),option_name=F('option__name'),
+                        bon_commande_type = F('bon_commande__type'))
+                
+                .annotate(
+                    total_quantite=Sum('quantite'),
+                    total_cout=Sum(F('quantite') * F('prix_unitaire'))
+                )
+            )
 
-            # Initialiser un dictionnaire pour regrouper les matériaux par ID
-            materiaux_totaux = {}
-
-            for bon in bons_commandes:
-                for materiau_bon in bon.materiaux.all():
-                    materiau_id = materiau_bon.materiau.id  # ID du matériau
-                    materiau_name = materiau_bon.materiau.name  # Nom du matériau (ajustez selon votre modèle)
-                    quantite = float(materiau_bon.quantite)
-                    cout_total = float(materiau_bon.cout_total)
-
-                    if materiau_id not in materiaux_totaux:
-                        materiaux_totaux[materiau_id] = {
-                            'materiau_name': materiau_name,
-                            'total_quantite': 0,
-                            'total_cout': 0
-                        }
-                    
-                    # Ajouter la quantité et le coût total
-                    materiaux_totaux[materiau_id]['total_quantite'] += quantite
-                    materiaux_totaux[materiau_id]['total_cout'] += cout_total
-            
-            # Préparer la réponse formatée
-            response_data = [
-                {
-                    'materiau_id': materiau_id,
-                    'materiau_name': data['materiau_name'],
-                    'total_quantite': data['total_quantite'],
-                    'total_cout': data['total_cout']
-                }
-                for materiau_id, data in materiaux_totaux.items()
-            ]
+            # Construire la réponse
+            response_data = {
+                "chantier_id": chantier.id,
+                "chantier_name": chantier.nom,
+                "chantier_numero": chantier.numero,
+                "cout_total_materiaux": chantier.cout_total_global,
+                "materiaux_totaux": list(materiaux_totaux)
+            }
 
             return Response(response_data, status=status.HTTP_200_OK)
-
         except Chantier.DoesNotExist:
-            return Response({'error': 'Chantier non trouvé'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-from .serializers import MateriauBonCommandeSerializer
-from rest_framework.exceptions import NotFound
+            return Response({"error": "Chantier non trouvé"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# Vue pour les matériaux dans un bon de commande
 class MateriauBonCommandeDetailView(APIView):
     def get(self, request, bon_commande_id, materiau_id):
-        try:
-            # Vérifier que le bon de commande existe
-            bon_commande = BonCommande.objects.get(id=bon_commande_id)
-        except BonCommande.DoesNotExist:
-            raise NotFound("Bon de commande non trouvé.")
-        
-        try:
-            # Vérifier que le matériau existe dans ce bon de commande
-            materiau = MateriauBonCommande.objects.get(id=materiau_id, bon_commande=bon_commande)
-        except MateriauBonCommande.DoesNotExist:
-            raise NotFound("Matériau non trouvé dans ce bon de commande.")
-        
-        # Sérialiser le matériau
-        serializer = MateriauBonCommandeSerializer(materiau)
+        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
+        materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)
+        serializer = MateriauBonCommandeSerializer(materiau_bon_commande)
         return Response(serializer.data)
 
     def put(self, request, bon_commande_id, materiau_id):
-        try:
-            # Vérifier que le bon de commande existe
-            bon_commande = BonCommande.objects.get(id=bon_commande_id)
-        except BonCommande.DoesNotExist:
-            raise NotFound("Bon de commande non trouvé.")
-        
-        try:
-            # Vérifier que le matériau existe dans ce bon de commande
-            materiau = MateriauBonCommande.objects.get(id=materiau_id, bon_commande=bon_commande)
-        except MateriauBonCommande.DoesNotExist:
-            raise NotFound("Matériau non trouvé dans ce bon de commande.")
-        
-        # Sérialiser et mettre à jour le matériau
-        serializer = MateriauBonCommandeSerializer(materiau, data=request.data, partial=True)
-        
+        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
+        materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)
+        serializer = MateriauBonCommandeSerializer(materiau_bon_commande, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-from rest_framework.decorators import api_view
+
 @api_view(['POST'])
 def add_materiau_to_bon_commande(request, bon_commande_id):
     try:
-        bon_commande = BonCommande.objects.get(id=bon_commande_id)
-    except BonCommande.DoesNotExist:
-        return Response({"error": "Bon de commande non trouvé"}, status=status.HTTP_404_NOT_FOUND)
+        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
+        materiau_id = request.data.get('materiau_id')
+        quantite = request.data.get('quantite')
+        unite = request.data.get('unite')
+        prix_unitaire = request.data.get('prix_unitaire')
 
-    materiau_id = request.data.get('materiau_id')
-    quantite = request.data.get('quantite')
-    unite = request.data.get('unite')
+        materiau = get_object_or_404(ListeMateriaux, id=materiau_id)
+        materiau_bon_commande = MateriauBonCommande.objects.create(
+            bon_commande=bon_commande,
+            materiau=materiau,
+            quantite=quantite,
+            unite=unite,
+            prix_unitaire=prix_unitaire,
+        )
+        serializer = MateriauBonCommandeSerializer(materiau_bon_commande)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Récupérer le matériau
-    try:
-        materiau = ListeMateriaux.objects.get(id=materiau_id)
-    except ListeMateriaux.DoesNotExist:
-        return Response({"error": "Matériau non trouvé"}, status=status.HTTP_404_NOT_FOUND)
 
-    # Créer un nouvel enregistrement dans la table de liaison entre BonCommande et Materiau
-    materiau_bon_commande = MateriauBonCommande.objects.create(
-        bon_commande=bon_commande,
-        materiau=materiau,
-        quantite=quantite,
-        unite=unite,
-    )
-
-    # Sérialiser le matériau ajouté
-    serializer = MateriauBonCommandeSerializer(materiau_bon_commande)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+# Supprimer un matériau d'un bon de commande
 @api_view(['DELETE'])
 def delete_materiau_from_bon_commande(request, bon_commande_id, materiau_id):
-    
-    try:
-        # Récupérer le bon de commande et le matériau
-        bon_commande_materiau = MateriauBonCommande.objects.get(id=materiau_id)
-    except MateriauBonCommande.DoesNotExist:
-        return Response({"error": "Matériau non trouvé dans ce bon de commande."}, status=status.HTTP_404_NOT_FOUND)
-    
-    # Supprimer le matériau
-    bon_commande_materiau.delete()
-
-    # Retourner une réponse réussie
+    materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id)
+    materiau_bon_commande.delete()
     return Response({"message": "Matériau supprimé avec succès."}, status=status.HTTP_204_NO_CONTENT)

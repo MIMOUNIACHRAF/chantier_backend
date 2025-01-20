@@ -1,12 +1,14 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from chantier.views import ChantierViewSet, ListeMateriauxViewSet, BonCommandeViewSet,ChantierBonCommandeViewSet
+from chantier.views import (BonCommandeViewSet, ChantierBonCommandeViewSet, ChantierViewSet,
+    ListeMateriauxViewSet, OptionMateriauViewSet)
 from chantier.models import Chantier
 
 router = DefaultRouter()
 router.register(r'chantiers', ChantierViewSet)
 router.register(r'materiaux', ListeMateriauxViewSet)
+router.register(r'options', OptionMateriauViewSet)
 router.register(r'bons-commande', BonCommandeViewSet)
 
 urlpatterns = [
