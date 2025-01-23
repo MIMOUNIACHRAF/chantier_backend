@@ -36,17 +36,6 @@ class Chantier(models.Model):
     def cout_total_global(self):
         return self.cout_total_materiaux + self.cout_total_main_oeuvre
     
-    # @property
-    # def cout_total_cheque(self):
-    #     return sum(partie.cout_total_cheque for partie in self.parties.all())
-
-    # @property
-    # def cout_total_espece(self):
-    #     # Calcul de la main-d'œuvre
-    #     return sum(partie.cout_total_espece for partie in self.parties.all())
-
-
-    
     def __str__(self):
         return self.nom
 
@@ -163,7 +152,7 @@ class OptionMateriau(models.Model):
         self.clean()
         super().save(*args, **kwargs)
     def __str__(self):
-        return f"{self.materiau.code} - Option: {self.valeur}/{self.type}"
+        return f"{self.materiau.code} - Option: {self.id}---{self.valeur}/{self.type}"
 
 class Paiement(models.Model):
     TYPE_CHOICES = [
@@ -213,58 +202,78 @@ class Paiement(models.Model):
             return f"Chèque {self.numero_cheque} ({self.nom_banque}) - {self.montant:.2f} DH"
         return f"Espèces - {self.montant:.2f} DH"
     
+from django.utils.translation import gettext as _
+
 class BonCommande(models.Model):
     TYPE_CHOICES = [
         ('gros_oeuvre', 'Gros Œuvre'),
         ('finition', 'Finition'),
     ]
     
-    reference = models.CharField(max_length=100, unique=True)
+    reference = models.CharField(
+        max_length=100, 
+        error_messages={
+            'unique': _("Un bon de commande avec cette référence existe déjà.")
+        },
+    )
     date = models.DateField()
 
-    # Default value for 'type'
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='gros_oeuvre')  # Provide a default value here
+    # Type du bon de commande avec une valeur par défaut
+    type = models.CharField(
+        max_length=20, 
+        choices=TYPE_CHOICES, 
+        default='gros_oeuvre'
+    )
 
-    # Define the 'partie' ForeignKey with a default value
+    # Lien avec la partie du chantier
     partie = models.ForeignKey(
-        PartieChantier,  # Référence directe à PartieChantier
-        on_delete=models.CASCADE,
+        'PartieChantier', 
+        on_delete=models.CASCADE, 
         related_name='bons_commande',
     )
-    
+
+    # Lien avec le paiement, optionnel
     paiement = models.OneToOneField(
-        Paiement,
+        'Paiement',
         null=True,
         blank=True,
         on_delete=models.CASCADE,
         related_name='bons_commande',
     )
     
+    # Méthode save pour gérer automatiquement le type si non défini
     def save(self, *args, **kwargs):
         if not self.type:
             self.type = self.partie.type
         super().save(*args, **kwargs)
 
+    # Calcul du coût total des matériaux
     @property
     def cout_total_materiaux(self):
         return self.materiaux.filter(option__type__in=['gros_oeuvre', 'finition']).aggregate(
             total=models.Sum(models.F('quantite') * models.F('prix_unitaire'))
         )['total'] or 0
 
+    # Calcul du coût total de la main-d'œuvre
     @property
     def cout_total_main_oeuvre(self):
         return self.materiaux.filter(option__type='main_doeuvre').aggregate(
             total=models.Sum(models.F('quantite') * models.F('prix_unitaire'))
         )['total'] or 0
+    
+    # Contraintes d'unicité
+    class Meta:
+        unique_together = (('reference', 'partie')) 
 
+    # Représentation en chaîne
     def __str__(self):
         return self.reference
 
+    # Calcul du coût total global
     @property
     def cout_total_global_BC(self):
         return self.cout_total_materiaux + self.cout_total_main_oeuvre
-
-
+from decimal import Decimal
 class MateriauBonCommande(models.Model):
     bon_commande = models.ForeignKey(BonCommande, on_delete=models.CASCADE, related_name='materiaux')
     materiau = models.ForeignKey(ListeMateriaux, null=True, blank=True, on_delete=models.SET_NULL)
@@ -279,7 +288,12 @@ class MateriauBonCommande(models.Model):
     )
     @property
     def cout_total(self):
-        return self.quantite * self.prix_unitaire
+        try:
+            quantite = Decimal(self.quantite) if not isinstance(self.quantite, Decimal) else self.quantite
+            prix_unitaire = Decimal(self.prix_unitaire) if not isinstance(self.prix_unitaire, Decimal) else self.prix_unitaire
+            return quantite * prix_unitaire
+        except (ValueError, TypeError):
+            return Decimal(0)
 
     def __str__(self):
         return f"{self.materiau.name if self.materiau else 'Matériel personnalisé'} - {self.bon_commande.reference}"

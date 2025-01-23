@@ -201,6 +201,22 @@
         "documentation": {}
     },
     {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
         "label": "models",
         "importPath": "django.db",
         "description": "django.db",
@@ -378,6 +394,22 @@
         "documentation": {}
     },
     {
+        "label": "gettext",
+        "importPath": "django.utils.translation",
+        "description": "django.utils.translation",
+        "isExtraImport": true,
+        "detail": "django.utils.translation",
+        "documentation": {}
+    },
+    {
+        "label": "Decimal",
+        "importPath": "decimal",
+        "description": "decimal",
+        "isExtraImport": true,
+        "detail": "decimal",
+        "documentation": {}
+    },
+    {
         "label": "serializers",
         "importPath": "rest_framework",
         "description": "rest_framework",
@@ -487,6 +519,14 @@
         "description": "chantier.filters",
         "isExtraImport": true,
         "detail": "chantier.filters",
+        "documentation": {}
+    },
+    {
+        "label": "ValidationError",
+        "importPath": "rest_framework.exceptions",
+        "description": "rest_framework.exceptions",
+        "isExtraImport": true,
+        "detail": "rest_framework.exceptions",
         "documentation": {}
     },
     {
@@ -706,6 +746,15 @@
         "documentation": {}
     },
     {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "chantier.migrations.0014_alter_boncommande_reference_and_more",
+        "description": "chantier.migrations.0014_alter_boncommande_reference_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('chantier', '0013_alter_boncommande_paiement'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='boncommande',\n            name='reference',\n            field=models.CharField(error_messages={'unique': 'Un bon de commande avec cette référence existe déjà.'}, max_length=100),\n        ),",
+        "detail": "chantier.migrations.0014_alter_boncommande_reference_and_more",
+        "documentation": {}
+    },
+    {
         "label": "ChantierConfig",
         "kind": 6,
         "importPath": "chantier.apps",
@@ -782,7 +831,7 @@
         "kind": 6,
         "importPath": "chantier.models",
         "description": "chantier.models",
-        "peekOfCode": "class BonCommande(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros Œuvre'),\n        ('finition', 'Finition'),\n    ]\n    reference = models.CharField(max_length=100, unique=True)\n    date = models.DateField()\n    # Default value for 'type'\n    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='gros_oeuvre')  # Provide a default value here\n    # Define the 'partie' ForeignKey with a default value",
+        "peekOfCode": "class BonCommande(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros Œuvre'),\n        ('finition', 'Finition'),\n    ]\n    reference = models.CharField(\n        max_length=100, \n        error_messages={\n            'unique': _(\"Un bon de commande avec cette référence existe déjà.\")\n        },",
         "detail": "chantier.models",
         "documentation": {}
     },
@@ -845,7 +894,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class MateriauBonCommandeSerializer(serializers.ModelSerializer):\n    materiau = serializers.CharField(required=False)\n    materiau_name = serializers.CharField(source='materiau.name', read_only=True)\n    type_materiau = serializers.CharField(source='materiau.type', read_only=True)\n    code = serializers.CharField(source='materiau.code', read_only=True)\n    cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    prix_unitaire = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    option = serializers.SerializerMethodField()\n    # option_code =   serializers.CharField(source='option.valeur', read_only=True)\n    class Meta:",
+        "peekOfCode": "class MateriauBonCommandeSerializer(serializers.ModelSerializer):\n    materiau = serializers.CharField(required=False)\n    materiau_id = serializers.CharField(source='materiau.id', read_only=True)\n    materiau_name = serializers.CharField(source='materiau.name', read_only=True)\n    type_materiau = serializers.CharField(source='materiau.type', read_only=True)\n    code = serializers.CharField(source='materiau.code', read_only=True)\n    cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    prix_unitaire = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    option = serializers.SerializerMethodField()\n    option_id = serializers.IntegerField(write_only=True, required=False)  # Nouveau champ pour l'option en entrée",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -962,7 +1011,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class MateriauBonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id, materiau_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)\n        serializer = MateriauBonCommandeSerializer(materiau_bon_commande)\n        return Response(serializer.data)\n    def put(self, request, bon_commande_id, materiau_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)\n        serializer = MateriauBonCommandeSerializer(materiau_bon_commande, data=request.data, partial=True)",
+        "peekOfCode": "class MateriauBonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id, materiau_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)\n        serializer = MateriauBonCommandeSerializer(materiau_bon_commande)\n        return Response(serializer.data)\n    def put(self, request, bon_commande_id, materiau_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)\n        # Gestion de l'option comme un objet",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -989,7 +1038,7 @@
         "kind": 2,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "def add_materiau_to_bon_commande(request, bon_commande_id):\n    try:\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_id = request.data.get('materiau_id')\n        quantite = request.data.get('quantite')\n        unite = request.data.get('unite')\n        prix_unitaire = request.data.get('prix_unitaire')\n        materiau = get_object_or_404(ListeMateriaux, id=materiau_id)\n        materiau_bon_commande = MateriauBonCommande.objects.create(\n            bon_commande=bon_commande,",
+        "peekOfCode": "def add_materiau_to_bon_commande(request, bon_commande_id):\n    try:\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_id = request.data.get('materiau_id')\n        quantite = request.data.get('quantite')\n        option_id = request.data.get('option_id')\n        prix_unitaire = request.data.get('prix_unitaire')\n        materiau = get_object_or_404(ListeMateriaux, id=materiau_id)\n        option = get_object_or_404(OptionMateriau, id=option_id)  \n        materiau_bon_commande = MateriauBonCommande.objects.create(",
         "detail": "chantier.views",
         "documentation": {}
     },

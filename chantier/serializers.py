@@ -100,31 +100,80 @@ class PartieChantierSerializer(serializers.ModelSerializer):
 
 class MateriauBonCommandeSerializer(serializers.ModelSerializer):
     materiau = serializers.CharField(required=False)
+    materiau_id = serializers.CharField(source='materiau.id', read_only=True)
     materiau_name = serializers.CharField(source='materiau.name', read_only=True)
     type_materiau = serializers.CharField(source='materiau.type', read_only=True)
     code = serializers.CharField(source='materiau.code', read_only=True)
     cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     prix_unitaire = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     option = serializers.SerializerMethodField()
-    
+    option_id = serializers.IntegerField(write_only=True, required=False)  # Nouveau champ pour l'option en entrée
+
     # option_code =   serializers.CharField(source='option.valeur', read_only=True)
     
     class Meta:
         model = MateriauBonCommande
-        fields = ['id', 'materiau', 'materiau_name','prix_unitaire', 'quantite', 'code', 'type_materiau', 'cout_total','option']
-
-    def validate_materiau(self, value):
+        fields = ['id','materiau_id', 'materiau','materiau_name','prix_unitaire', 'quantite', 'code', 'type_materiau', 'cout_total','option','option_id']
+    def validate_option_id(self, value):
+        # Valider que l'option existe dans la base de données
+        try:
+            return OptionMateriau.objects.get(id=value)
+        except OptionMateriau.DoesNotExist:
+            raise serializers.ValidationError("L'option spécifiée n'existe pas.")
+        
+    def validate_materiau_id(self, value):
         # Si la valeur est "autre", laissez la gestion au `create`
         if value == "autre":
             return value
         # Vérifiez si le matériau existe dans la base
+        print(value)
         try:
             return ListeMateriaux.objects.get(id=value)
         except (ListeMateriaux.DoesNotExist, ValueError):
-            raise serializers.ValidationError("Le matériau spécifié n'existe pas.")
+            raise serializers.ValidationError(f"Le matériau spécifié avec l'ID {value} n'existe pas.")
+
+
+    def update(self, instance, validated_data):
+        print('id',self.initial_data['materiau_id'])
+        
+        if 'materiau_id' in self.initial_data:
+            try:
+                instance.materiau = ListeMateriaux.objects.get(id=self.initial_data['materiau_id'])
+            except ListeMateriaux.DoesNotExist:
+                raise serializers.ValidationError(f"Le matériau spécifié avec l'ID {self.initial_data['materiau_id']} n'existe pas.")
+
+        
+        # Mise à jour de l'option
+        if 'option' in self.initial_data:
+            option_data = self.initial_data['option']
+            try:
+                instance.option = OptionMateriau.objects.get(id=option_data)
+            except OptionMateriau.DoesNotExist:
+                raise serializers.ValidationError(f"L'option spécifiée avec l'ID {option_data['option']} n'existe pas.")
+            # Si c'est un ID
+        else:
+            raise serializers.ValidationError("Le champ 'option' doit être soit un ID, soit un objet valide.")
+
+        # Mise à jour du prix unitaire
+        if 'prix_unitaire' in self.initial_data:
+            instance.prix_unitaire = self.initial_data['prix_unitaire']
+
+        # Mise à jour de la quantité
+        # instance.quantite = validated_data.get('quantite', instance.quantite)
+        if 'quantite' in self.initial_data:
+            instance.quantite = self.initial_data['quantite']
+        instance.save()
+
+        # Affichage de l'instance pour débogage
+        print('Instance mise à jour :', instance)
+
+        return instance
+   
+        
     def get_option(self, obj):
         if obj.option:
             return {
+                "option_id":obj.option.id,
                 "code_option": obj.option.valeur,
                 "type_option": obj.option.type,
                 "nom_option": obj.option.name,
@@ -226,7 +275,7 @@ class BonCommandeSerializer(serializers.ModelSerializer):
                 if materiau['option_valeur']=='autre':
                     option_valeur ,created = OptionMateriau.objects.get_or_create(
                         materiau=liste_materiau,
-                        valeur=materiau['option_valeur']
+                        valeur=materiau['option_valeur'],
                     )
                 else:
                     try:
@@ -234,7 +283,8 @@ class BonCommandeSerializer(serializers.ModelSerializer):
                     except OptionMateriau.DoesNotExist:
                         option_valeur = OptionMateriau.objects.create(
                             materiau=liste_materiau,
-                            valeur=materiau['option_valeur'])
+                            valeur=materiau['option_valeur'],
+                            type=materiau['option_type'])
             else:
                 option_valeur = None
             # if(materiau['paiement']):

@@ -175,7 +175,7 @@ class ChantierMateriauxTotalsView(APIView):
         except Chantier.DoesNotExist:
             return Response({"error": "Chantier non trouvé"}, status=status.HTTP_404_NOT_FOUND)
 
-
+from rest_framework.exceptions import ValidationError
 # Vue pour les matériaux dans un bon de commande
 class MateriauBonCommandeDetailView(APIView):
     def get(self, request, bon_commande_id, materiau_id):
@@ -187,11 +187,26 @@ class MateriauBonCommandeDetailView(APIView):
     def put(self, request, bon_commande_id, materiau_id):
         bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
         materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)
+
+        # Gestion de l'option comme un objet
+        option_id = request.data.get('option')
+        if option_id:
+            try:
+                request.data['option'] = OptionMateriau.objects.get(id=option_id).id
+            except OptionMateriau.DoesNotExist:
+                return Response({"error": "L'option spécifiée n'existe pas."}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = MateriauBonCommandeSerializer(materiau_bon_commande, data=request.data, partial=True)
+        
+        # serializer.save()
         if serializer.is_valid():
-            serializer.save()
+            
+            instance = serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
 
 @api_view(['POST'])
 def add_materiau_to_bon_commande(request, bon_commande_id):
@@ -199,15 +214,17 @@ def add_materiau_to_bon_commande(request, bon_commande_id):
         bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
         materiau_id = request.data.get('materiau_id')
         quantite = request.data.get('quantite')
-        unite = request.data.get('unite')
+        option_id = request.data.get('option_id')
         prix_unitaire = request.data.get('prix_unitaire')
 
         materiau = get_object_or_404(ListeMateriaux, id=materiau_id)
+        option = get_object_or_404(OptionMateriau, id=option_id)  
+        
         materiau_bon_commande = MateriauBonCommande.objects.create(
             bon_commande=bon_commande,
             materiau=materiau,
             quantite=quantite,
-            unite=unite,
+            option=option,
             prix_unitaire=prix_unitaire,
         )
         serializer = MateriauBonCommandeSerializer(materiau_bon_commande)
