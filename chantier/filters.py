@@ -9,7 +9,7 @@ class BonCommandeFilter(FilterSet):
     reference = CharFilter(method='filter_reference')  # Recherche avancée par référence
     chantier = CharFilter(method='filter_chantier')  # Filtrer par ID ou nom du chantier
     partie_type = CharFilter(field_name="partie__type")  # Filtrer par type de partie (gros œuvre ou finition)
-
+    
     class Meta:
         model = BonCommande
         fields = ['date', 'reference', 'chantier', 'partie_type']

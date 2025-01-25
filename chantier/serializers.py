@@ -53,13 +53,14 @@ class ChantierSerializer(serializers.ModelSerializer):
     cout_total_main_oeuvre_gros_oeuvre = serializers.ReadOnlyField()
     cout_total_main_oeuvre_finition = serializers.ReadOnlyField()
     cout_total_global = serializers.SerializerMethodField()
-    # cout_total_espece = serializers.ReadOnlyField()
+    cout_total_espece = serializers.ReadOnlyField()
+    cout_total_cheque = serializers.ReadOnlyField()
     # cout_total_global = serializers.ReadOnlyField()
 
     class Meta:
         model = Chantier
         fields = ['id', 'numero', 'nom', 'cout_total_materiaux', 'cout_total_main_oeuvre','cout_total_materiaux_gros_oeuvre','cout_total_materiaux_finition','cout_total_main_oeuvre_finition','cout_total_main_oeuvre_gros_oeuvre', 
-                  'cout_total_global',]
+                  'cout_total_global','cout_total_espece','cout_total_cheque']
 
     def get_cout_total_global(self, obj):
         # Somme des matériaux et de la main-d'œuvre
@@ -89,13 +90,13 @@ class PartieChantierSerializer(serializers.ModelSerializer):
     cout_total_chantier_materiaux_gros_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     cout_total_main_oeuvre_finition  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True) 
     cout_total_main_oeuvre_gros_oeuvre  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    # cout_total_espece  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    # cout_total_cheque  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    cout_total_espece  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    cout_total_cheque  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     
     class Meta:
         model = PartieChantier
         fields = ['id', 'chantier', 'type', 'cout_total_materiaux', 'cout_total_main_oeuvre','cout_total_chantier_materiaux_finition','cout_total_main_oeuvre_finition','cout_total_main_oeuvre_gros_oeuvre',
-                  'cout_total_chantier_materiaux_gros_oeuvre',]
+                  'cout_total_chantier_materiaux_gros_oeuvre','cout_total_espece','cout_total_cheque']
 
 
 class MateriauBonCommandeSerializer(serializers.ModelSerializer):
@@ -115,7 +116,7 @@ class MateriauBonCommandeSerializer(serializers.ModelSerializer):
         model = MateriauBonCommande
         fields = ['id','materiau_id', 'materiau','materiau_name','prix_unitaire', 'quantite', 'code', 'type_materiau', 'cout_total','option','option_id']
     def validate_option_id(self, value):
-        # Valider que l'option existe dans la base de données
+        
         try:
             return OptionMateriau.objects.get(id=value)
         except OptionMateriau.DoesNotExist:
@@ -134,7 +135,6 @@ class MateriauBonCommandeSerializer(serializers.ModelSerializer):
 
 
     def update(self, instance, validated_data):
-        print('id',self.initial_data['materiau_id'])
         
         if 'materiau_id' in self.initial_data:
             try:
@@ -144,14 +144,21 @@ class MateriauBonCommandeSerializer(serializers.ModelSerializer):
 
         
         # Mise à jour de l'option
+        print('initial data is : ',self.initial_data)
         if 'option' in self.initial_data:
             option_data = self.initial_data['option']
-            try:
-                instance.option = OptionMateriau.objects.get(id=option_data)
-            except OptionMateriau.DoesNotExist:
-                raise serializers.ValidationError(f"L'option spécifiée avec l'ID {option_data['option']} n'existe pas.")
+            print(option_data)
+            if option_data: 
+                try:
+                    instance.option = OptionMateriau.objects.get(id=option_data)
+                except OptionMateriau.DoesNotExist:
+                    raise serializers.ValidationError(f"L'option spécifiée avec l'ID {option_data['option']} n'existe pas.")
+            else:
+                instance.option =None
+
+                
             # Si c'est un ID
-        else:
+        else:   
             raise serializers.ValidationError("Le champ 'option' doit être soit un ID, soit un objet valide.")
 
         # Mise à jour du prix unitaire
@@ -192,6 +199,7 @@ class BonCommandeSerializer(serializers.ModelSerializer):
     chantier_id = serializers.CharField(source='partie.chantier.id', read_only=True)
     chantier_name = serializers.CharField(source='partie.chantier.nom', read_only=True)
     chantier_numero = serializers.CharField(source='partie.chantier.numero', read_only=True)
+    # cout_total_chantier_espece = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_chantier_espece', read_only=True)
     cout_total_chantier_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_materiaux', read_only=True)
     cout_total_chantier_main_d_oeuvre= serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_main_oeuvre', read_only=True)
     cout_total_chantier_global= serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_global', read_only=True)
@@ -200,11 +208,11 @@ class BonCommandeSerializer(serializers.ModelSerializer):
     
     cout_total_main_oeuvre_finition  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_main_oeuvre_finition', read_only=True) 
     cout_total_main_oeuvre_gros_oeuvre  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_main_oeuvre_gros_oeuvre', read_only=True) 
-    # cout_total_espece  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_espece', read_only=True) 
-    # cout_total_cheque  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_cheque', read_only=True) 
+    cout_total_espece  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_espece', read_only=True) 
+    cout_total_cheque  = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_cheque', read_only=True) 
     
     partie_type = serializers.CharField(source='partie.type', read_only=True)
-    partie = serializers.CharField(write_only=True)
+    partie = serializers.CharField(write_only=True) 
     class Meta:
         model = BonCommande
         fields = [  
@@ -216,6 +224,8 @@ class BonCommandeSerializer(serializers.ModelSerializer):
             'cout_total_chantier_main_d_oeuvre','materiaux',
             'cout_total_main_oeuvre_gros_oeuvre',
             'cout_total_main_oeuvre_finition',
+            'cout_total_espece',
+            'cout_total_cheque',
              'paiement',
         ]
         
@@ -241,7 +251,7 @@ class BonCommandeSerializer(serializers.ModelSerializer):
         materiaux_objects_list = []
         
         materiaux_data = initial_data.get('materiaux', [])
-        print(materiaux_data)
+        print(initial_data      )
         if not materiaux_data:
             raise serializers.ValidationError("Les matériaux sont requis.")
         paiement_data = initial_data.get('paiement', None)
@@ -272,10 +282,11 @@ class BonCommandeSerializer(serializers.ModelSerializer):
                         type=materiau['type_materiau'],
                     )
             if(materiau['option_valeur']):
-                if materiau['option_valeur']=='autre':
+                if materiau['materiau']=='autre':
                     option_valeur ,created = OptionMateriau.objects.get_or_create(
                         materiau=liste_materiau,
                         valeur=materiau['option_valeur'],
+                        type=materiau['option_type'],
                     )
                 else:
                     try:

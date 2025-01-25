@@ -155,7 +155,7 @@ class ChantierMateriauxTotalsView(APIView):
                 .values(material_name=F('materiau__name'),material_type=F('materiau__type'),option_type=F('option__type'),
                         option_valeur=F('option__valeur'),material_code=F('materiau__code'),option_name=F('option__name'),
                         bon_commande_type = F('bon_commande__type'))
-                
+                    
                 .annotate(
                     total_quantite=Sum('quantite'),
                     total_cout=Sum(F('quantite') * F('prix_unitaire'))
@@ -191,10 +191,16 @@ class MateriauBonCommandeDetailView(APIView):
         # Gestion de l'option comme un objet
         option_id = request.data.get('option')
         if option_id:
+            print(option_id)
+            print(f'viws : ',type(option_id))
+
+
             try:
                 request.data['option'] = OptionMateriau.objects.get(id=option_id).id
             except OptionMateriau.DoesNotExist:
                 return Response({"error": "L'option spécifiée n'existe pas."}, status=status.HTTP_400_BAD_REQUEST)
+        else :
+            request.data['option'] = None
 
         serializer = MateriauBonCommandeSerializer(materiau_bon_commande, data=request.data, partial=True)
         
@@ -218,7 +224,11 @@ def add_materiau_to_bon_commande(request, bon_commande_id):
         prix_unitaire = request.data.get('prix_unitaire')
 
         materiau = get_object_or_404(ListeMateriaux, id=materiau_id)
-        option = get_object_or_404(OptionMateriau, id=option_id)  
+        print(option_id)
+        if option_id : 
+            option = get_object_or_404(OptionMateriau, id=option_id)   
+        else:
+            option = None
         
         materiau_bon_commande = MateriauBonCommande.objects.create(
             bon_commande=bon_commande,
