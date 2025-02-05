@@ -290,12 +290,18 @@ class BonCommandeSerializer(serializers.ModelSerializer):
                     )
                 else:
                     try:
-                        option_valeur = OptionMateriau.objects.get(id=materiau['option_valeur'])
-                    except OptionMateriau.DoesNotExist:
+                        # Vérifiez si 'option_valeur' est un entier avant de l'utiliser comme ID
+                        if str(materiau['option_valeur']).isdigit():
+                            option_valeur = OptionMateriau.objects.get(id=materiau['option_valeur'])
+                        else:
+                            raise ValueError("Invalid ID for option_valeur")
+                    except (OptionMateriau.DoesNotExist, ValueError):
+                        # Créez une nouvelle entrée si l'ID est invalide ou non trouvé
                         option_valeur = OptionMateriau.objects.create(
                             materiau=liste_materiau,
                             valeur=materiau['option_valeur'],
-                            type=materiau['option_type'])
+                            type=materiau['option_type']
+                        )
             else:
                 option_valeur = None
             # if(materiau['paiement']):

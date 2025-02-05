@@ -123,6 +123,7 @@ class ChantierBonCommandeViewSet(viewsets.ViewSet):
         bons_commande = BonCommande.objects.filter(partie__chantier=chantier)
         serializer = BonCommandeSerializer(bons_commande, many=True)
         return Response(serializer.data)
+    
 
 
 # Vue pour les détails des bons de commande

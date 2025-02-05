@@ -354,6 +354,30 @@
         "documentation": {}
     },
     {
+        "label": "Q",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "Sum",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "F",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
         "label": "Sum",
         "importPath": "django.db.models",
         "description": "django.db.models",
@@ -786,7 +810,7 @@
         "kind": 6,
         "importPath": "chantier.models",
         "description": "chantier.models",
-        "peekOfCode": "class Chantier(models.Model):\n    numero = models.CharField(max_length=50, unique=True)\n    nom = models.CharField(max_length=100, blank=True)\n    @property\n    def cout_total_materiaux(self):\n        # Somme des coûts des matériaux pour toutes les parties du chantier\n        return sum(partie.cout_total_materiaux for partie in self.parties.all())\n    @property\n    def cout_total_main_oeuvre(self):\n        # Somme des coûts de la main-d'œuvre pour toutes les parties du chantier",
+        "peekOfCode": "class Chantier(models.Model):\n    numero = models.CharField(max_length=50, unique=True)\n    nom = models.CharField(max_length=100, blank=True)\n    @property\n    def cout_total_espece(self):\n        # Somme des coûts des matériaux pour toutes les parties du chantier\n        return sum(partie.cout_total_espece for partie in self.parties.all())\n    @property\n    def cout_total_cheque(self):\n        # Somme des coûts des matériaux pour toutes les parties du chantier",
         "detail": "chantier.models",
         "documentation": {}
     },
@@ -800,11 +824,15 @@
         "documentation": {}
     },
     {
-        "label": "ListeMateriaux",
+        "label": {
+            "name": "",
+            "kind": 6,
+            "peekOfCode": "class   ListeMateriaux(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros œuvre'),\n        ('finition', 'Finition'),\n        ('main_doeuvre', 'Main d’œuvre'),\n    ]\n    name = models.CharField(max_length=50)\n    code = models.CharField(max_length=10,null=True, unique=True) \n    type = models.CharField(max_length=20, choices=TYPE_CHOICES) \n    def __str__(self):"
+        },
         "kind": 6,
         "importPath": "chantier.models",
         "description": "chantier.models",
-        "peekOfCode": "class ListeMateriaux(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros œuvre'),\n        ('finition', 'Finition'),\n        ('main_doeuvre', 'Main d’œuvre'),\n    ]\n    name = models.CharField(max_length=50)\n    code = models.CharField(max_length=10,null=True, unique=True) \n    type = models.CharField(max_length=20, choices=TYPE_CHOICES) \n    def __str__(self):",
+        "peekOfCode": "class   ListeMateriaux(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros œuvre'),\n        ('finition', 'Finition'),\n        ('main_doeuvre', 'Main d’œuvre'),\n    ]\n    name = models.CharField(max_length=50)\n    code = models.CharField(max_length=10,null=True, unique=True) \n    type = models.CharField(max_length=20, choices=TYPE_CHOICES) \n    def __str__(self):",
         "detail": "chantier.models",
         "documentation": {}
     },
@@ -867,7 +895,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class ChantierSerializer(serializers.ModelSerializer):\n    cout_total_materiaux = serializers.ReadOnlyField()\n    cout_total_main_oeuvre = serializers.ReadOnlyField()\n    cout_total_materiaux_finition = serializers.ReadOnlyField()\n    cout_total_materiaux_gros_oeuvre = serializers.ReadOnlyField()\n    cout_total_main_oeuvre_gros_oeuvre = serializers.ReadOnlyField()\n    cout_total_main_oeuvre_finition = serializers.ReadOnlyField()\n    cout_total_global = serializers.SerializerMethodField()\n    # cout_total_espece = serializers.ReadOnlyField()\n    # cout_total_global = serializers.ReadOnlyField()",
+        "peekOfCode": "class ChantierSerializer(serializers.ModelSerializer):\n    cout_total_materiaux = serializers.ReadOnlyField()\n    cout_total_main_oeuvre = serializers.ReadOnlyField()\n    cout_total_materiaux_finition = serializers.ReadOnlyField()\n    cout_total_materiaux_gros_oeuvre = serializers.ReadOnlyField()\n    cout_total_main_oeuvre_gros_oeuvre = serializers.ReadOnlyField()\n    cout_total_main_oeuvre_finition = serializers.ReadOnlyField()\n    cout_total_global = serializers.SerializerMethodField()\n    cout_total_espece = serializers.ReadOnlyField()\n    cout_total_cheque = serializers.ReadOnlyField()",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -885,7 +913,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class PartieChantierSerializer(serializers.ModelSerializer):\n    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_chantier_materiaux_finition = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_chantier_materiaux_gros_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre_finition  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True) \n    cout_total_main_oeuvre_gros_oeuvre  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    # cout_total_espece  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    # cout_total_cheque  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    class Meta:",
+        "peekOfCode": "class PartieChantierSerializer(serializers.ModelSerializer):\n    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_chantier_materiaux_finition = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_chantier_materiaux_gros_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre_finition  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True) \n    cout_total_main_oeuvre_gros_oeuvre  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_espece  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_cheque  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    class Meta:",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -903,7 +931,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class BonCommandeSerializer(serializers.ModelSerializer):\n    materiaux = MateriauBonCommandeSerializer(many=True, read_only=True)\n    paiement = PaiementSerializer()\n    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_global_BC = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    chantier_id = serializers.CharField(source='partie.chantier.id', read_only=True)\n    chantier_name = serializers.CharField(source='partie.chantier.nom', read_only=True)\n    chantier_numero = serializers.CharField(source='partie.chantier.numero', read_only=True)\n    cout_total_chantier_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_materiaux', read_only=True)",
+        "peekOfCode": "class BonCommandeSerializer(serializers.ModelSerializer):\n    materiaux = MateriauBonCommandeSerializer(many=True, read_only=True)\n    paiement = PaiementSerializer()\n    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_global_BC = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    chantier_id = serializers.CharField(source='partie.chantier.id', read_only=True)\n    chantier_name = serializers.CharField(source='partie.chantier.nom', read_only=True)\n    chantier_numero = serializers.CharField(source='partie.chantier.numero', read_only=True)\n    # cout_total_chantier_espece = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_chantier_espece', read_only=True)",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -1038,7 +1066,7 @@
         "kind": 2,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "def add_materiau_to_bon_commande(request, bon_commande_id):\n    try:\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_id = request.data.get('materiau_id')\n        quantite = request.data.get('quantite')\n        option_id = request.data.get('option_id')\n        prix_unitaire = request.data.get('prix_unitaire')\n        materiau = get_object_or_404(ListeMateriaux, id=materiau_id)\n        option = get_object_or_404(OptionMateriau, id=option_id)  \n        materiau_bon_commande = MateriauBonCommande.objects.create(",
+        "peekOfCode": "def add_materiau_to_bon_commande(request, bon_commande_id):\n    try:\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_id = request.data.get('materiau_id')\n        quantite = request.data.get('quantite')\n        option_id = request.data.get('option_id')\n        prix_unitaire = request.data.get('prix_unitaire')\n        materiau = get_object_or_404(ListeMateriaux, id=materiau_id)\n        print(option_id)\n        if option_id : ",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -1065,7 +1093,7 @@
         "kind": 5,
         "importPath": "chantier_backend.settings",
         "description": "chantier_backend.settings",
-        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-ayi5$ceiyzg%-wd1^l%fh10l23f+*k0rvs73x4_1mpbibm#c!='\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = ['*']\nCORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular",
+        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-ayi5$ceiyzg%-wd1^l%fh10l23f+*k0rvs73x4_1mpbibm#c!='\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = ['*']\nCORS_ALLOWED_ORIGINS = [\"http://192.168.3.205:4200\",\n    \"http://localhost:4200\",  # Origine de votre application Angular",
         "detail": "chantier_backend.settings",
         "documentation": {}
     },
@@ -1074,7 +1102,7 @@
         "kind": 5,
         "importPath": "chantier_backend.settings",
         "description": "chantier_backend.settings",
-        "peekOfCode": "SECRET_KEY = 'django-insecure-ayi5$ceiyzg%-wd1^l%fh10l23f+*k0rvs73x4_1mpbibm#c!='\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = ['*']\nCORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [",
+        "peekOfCode": "SECRET_KEY = 'django-insecure-ayi5$ceiyzg%-wd1^l%fh10l23f+*k0rvs73x4_1mpbibm#c!='\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = ['*']\nCORS_ALLOWED_ORIGINS = [\"http://192.168.3.205:4200\",\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [",
         "detail": "chantier_backend.settings",
         "documentation": {}
     },
@@ -1083,7 +1111,7 @@
         "kind": 5,
         "importPath": "chantier_backend.settings",
         "description": "chantier_backend.settings",
-        "peekOfCode": "DEBUG = True\nALLOWED_HOSTS = ['*']\nCORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',",
+        "peekOfCode": "DEBUG = True\nALLOWED_HOSTS = ['*']\nCORS_ALLOWED_ORIGINS = [\"http://192.168.3.205:4200\",\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',",
         "detail": "chantier_backend.settings",
         "documentation": {}
     },
@@ -1092,7 +1120,7 @@
         "kind": 5,
         "importPath": "chantier_backend.settings",
         "description": "chantier_backend.settings",
-        "peekOfCode": "ALLOWED_HOSTS = ['*']\nCORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',",
+        "peekOfCode": "ALLOWED_HOSTS = ['*']\nCORS_ALLOWED_ORIGINS = [\"http://192.168.3.205:4200\",\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',",
         "detail": "chantier_backend.settings",
         "documentation": {}
     },
@@ -1101,7 +1129,7 @@
         "kind": 5,
         "importPath": "chantier_backend.settings",
         "description": "chantier_backend.settings",
-        "peekOfCode": "CORS_ALLOWED_ORIGINS = [\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',",
+        "peekOfCode": "CORS_ALLOWED_ORIGINS = [\"http://192.168.3.205:4200\",\n    \"http://localhost:4200\",  # Origine de votre application Angular\n]\nCORS_ALLOW_ALL_ORIGINS = True\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',",
         "detail": "chantier_backend.settings",
         "documentation": {}
     },
