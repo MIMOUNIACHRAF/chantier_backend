@@ -10,3 +10,26 @@ __pycache__/
 # Dossiers d'IDE
 .vscode/
 .idea/
+# ---- Django ------------------------------------------------
+db.sqlite3
+*.sqlite3
+
+# Fichiers statiques et médias (si tu les gardes localement)
+staticfiles/
+static/
+media/
+
+# Migrations compilées
+*/migrations/__pycache__/
+
+# ---- Outils de test / build -------------------------------
+htmlcov/
+.coverage
+.tox/
+pytest_cache/
+
+# ---- Mac & Windows ----------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
