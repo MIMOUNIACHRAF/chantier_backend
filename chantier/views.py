@@ -19,6 +19,7 @@ from .serializers import (
     PartieChantierSerializer,
     ListeMateriauxSerializer,
     BonCommandeSerializer,
+    BonCommandeListSerializer,
     MateriauBonCommandeSerializer,
     OptionMateriauSerializer,
 )
@@ -34,6 +35,7 @@ def _bc_queryset():
             queryset=MateriauBonCommande.objects.select_related('materiau', 'option')
         )
     )
+
 
 
 @api_view(['GET'])
@@ -104,9 +106,13 @@ def add_or_update_option(request, materiau_id):
 
 class BonCommandeViewSet(viewsets.ModelViewSet):
     queryset = _bc_queryset()
-    serializer_class = BonCommandeSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = BonCommandeFilter
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return BonCommandeSerializer
+        return BonCommandeListSerializer
 
     def get_serializer_context(self):
         ctx = super().get_serializer_context()
@@ -119,8 +125,7 @@ class ChantierBonCommandeViewSet(viewsets.ViewSet):
     def list(self, request, chantier_id=None):
         chantier = get_object_or_404(Chantier, id=chantier_id)
         bons_commande = _bc_queryset().filter(partie__chantier=chantier)
-        ctx = {'chantier_cache': {}, 'bc_totals_cache': {}, 'request': request}
-        serializer = BonCommandeSerializer(bons_commande, many=True, context=ctx)
+        serializer = BonCommandeListSerializer(bons_commande, many=True, context={'request': request})
         return Response(serializer.data)
 
 

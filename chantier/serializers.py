@@ -179,6 +179,40 @@ class MateriauBonCommandeSerializer(serializers.ModelSerializer):
         return None
 
 
+class PaiementLightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Paiement
+        fields = ['id', 'type_paiement', 'date_paiement']
+
+
+class BonCommandeListSerializer(serializers.ModelSerializer):
+    """Serializer léger pour les listes — sans matériaux embarqués ni totaux chantier."""
+    chantier_id = serializers.CharField(source='partie.chantier.id', read_only=True)
+    chantier_name = serializers.CharField(source='partie.chantier.nom', read_only=True)
+    chantier_numero = serializers.CharField(source='partie.chantier.numero', read_only=True)
+    partie_type = serializers.CharField(source='partie.type', read_only=True)
+    paiement = PaiementLightSerializer(read_only=True)
+    cout_total_global_BC = serializers.SerializerMethodField()
+    nb_materiaux = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BonCommande
+        fields = [
+            'id', 'reference', 'date', 'type',
+            'chantier_id', 'chantier_name', 'chantier_numero',
+            'partie_type', 'cout_total_global_BC', 'nb_materiaux', 'paiement',
+        ]
+
+    def get_cout_total_global_BC(self, obj):
+        total = Decimal('0')
+        for m in obj.materiaux.all():
+            total += m.quantite * m.prix_unitaire
+        return total
+
+    def get_nb_materiaux(self, obj):
+        return len(obj.materiaux.all())
+
+
 class BonCommandeSerializer(serializers.ModelSerializer):
     materiaux = MateriauBonCommandeSerializer(many=True, read_only=True)
     paiement = PaiementSerializer()
