@@ -1,58 +1,90 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-
 from django.db.models import Sum, F, Q
+from decimal import Decimal
+
+
 class Chantier(models.Model):
     numero = models.CharField(max_length=50, unique=True)
     nom = models.CharField(max_length=100, blank=True)
+
     @property
     def cout_total_espece(self):
-        # Somme des coûts des matériaux pour toutes les parties du chantier
-        return sum(partie.cout_total_espece for partie in self.parties.all())
+        return MateriauBonCommande.objects.filter(
+            bon_commande__partie__chantier=self,
+            bon_commande__paiement__type_paiement='espece'
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
+
     @property
     def cout_total_cheque(self):
-        # Somme des coûts des matériaux pour toutes les parties du chantier
-        return sum(partie.cout_total_cheque for partie in self.parties.all())
-    
+        return MateriauBonCommande.objects.filter(
+            bon_commande__partie__chantier=self,
+            bon_commande__paiement__type_paiement='cheque'
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
+
     @property
     def cout_total_materiaux(self):
-        # Somme des coûts des matériaux pour toutes les parties du chantier
-        return sum(partie.cout_total_materiaux for partie in self.parties.all())
+        return MateriauBonCommande.objects.filter(
+            bon_commande__partie__chantier=self
+        ).filter(
+            Q(option__isnull=False, option__type__in=['gros_oeuvre', 'finition']) |
+            Q(option__isnull=True, materiau__type__in=['gros_oeuvre', 'finition'])
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
     @property
     def cout_total_main_oeuvre(self):
-        # Somme des coûts de la main-d'œuvre pour toutes les parties du chantier
-        return sum(partie.cout_total_main_oeuvre for partie in self.parties.all())
-    
+        return MateriauBonCommande.objects.filter(
+            bon_commande__partie__chantier=self
+        ).filter(
+            Q(option__isnull=False, option__type='main_doeuvre') |
+            Q(option__isnull=True, materiau__type='main_doeuvre')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
+
     @property
     def cout_total_materiaux_finition(self):
-        # Somme des coûts de la main-d'œuvre pour toutes les parties du chantier
-        return sum(partie.cout_total_materiaux_finition for partie in self.parties.all())
+        return MateriauBonCommande.objects.filter(
+            bon_commande__partie__chantier=self
+        ).filter(
+            Q(option__isnull=False, option__type='finition') |
+            Q(option__isnull=True, materiau__type='finition')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
+
     @property
     def cout_total_materiaux_gros_oeuvre(self):
-        # Somme des coûts de la main-d'œuvre pour toutes les parties du chantier
-        return sum(partie.cout_total_materiaux_gros_oeuvre for partie in self.parties.all())
+        return MateriauBonCommande.objects.filter(
+            bon_commande__partie__chantier=self
+        ).filter(
+            Q(option__isnull=False, option__type='gros_oeuvre') |
+            Q(option__isnull=True, materiau__type='gros_oeuvre')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
+
     @property
     def cout_total_main_oeuvre_gros_oeuvre(self):
-        # Somme des coûts de la main-d'œuvre pour toutes les parties du chantier
-        return sum(partie.cout_total_main_oeuvre_gros_oeuvre for partie in self.parties.all())
+        return MateriauBonCommande.objects.filter(
+            bon_commande__partie__chantier=self,
+            bon_commande__type='gros_oeuvre'
+        ).filter(
+            Q(option__isnull=False, option__type='main_doeuvre') |
+            Q(option__isnull=True, materiau__type='main_doeuvre')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
+
     @property
     def cout_total_main_oeuvre_finition(self):
-        # Somme des coûts de la main-d'œuvre pour toutes les parties du chantier
-        return sum(partie.cout_total_main_oeuvre_finition for partie in self.parties.all())
+        return MateriauBonCommande.objects.filter(
+            bon_commande__partie__chantier=self,
+            bon_commande__type='finition'
+        ).filter(
+            Q(option__isnull=False, option__type='main_doeuvre') |
+            Q(option__isnull=True, materiau__type='main_doeuvre')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
+
     @property
     def cout_total_global(self):
-
-        print('cout_total_espece chantier ',self.cout_total_espece )
-        print('cout_total_main_oeuvre chantier ',self.cout_total_main_oeuvre )
-        print('cout_total_materiaux chantier',self.cout_total_materiaux )
         return self.cout_total_materiaux + self.cout_total_main_oeuvre
-    
+
     def __str__(self):
         return self.nom
 
-
-from django.db.models import Sum, F
 
 class PartieChantier(models.Model):
     CHOICES_TYPE = [
@@ -61,237 +93,116 @@ class PartieChantier(models.Model):
     ]
     chantier = models.ForeignKey(Chantier, on_delete=models.CASCADE, related_name='parties')
     type = models.CharField(max_length=20, choices=CHOICES_TYPE)
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['chantier', 'type'], name='unique_partie_per_type')
         ]
-    #  @property
-    # def cout_total_materiaux(self):
-    #     """
-    #     Calcul des coûts totaux des matériaux en vérifiant :
-    #     - Si 'option' existe : utiliser 'option__type'.
-    #     - Si 'option' est nul : utiliser 'materiau__type'.
-    #     """
-    #     return self.materiaux.filter(
-    #         Q(
-    #             Q(option__isnull=False) & Q(option__type__in=['gros_oeuvre', 'finition'])
-    #         ) | Q(
-    #             Q(option__isnull=True) & Q(materiau__type__in=['gros_oeuvre', 'finition'])
-    #         )
-    #     ).aggregate(
-    #         total=Sum(F('quantite') * F('prix_unitaire'))
-    #     )['total'] or 0
-
-    # @property
-    # def cout_total_main_oeuvre(self):
-    #     """
-    #     Calcul des coûts totaux de la main-d'œuvre :
-    #     - Si 'option' existe : utiliser 'option__type'.
-    #     - Si 'option' est nul : utiliser 'materiau__type'.
-    #     """
-    #     return self.materiaux.filter(
-    #         Q(
-    #             Q(option__isnull=False) & Q(option__type='main_doeuvre')
-    #         ) | Q(
-    #             Q(option__isnull=True) & Q(materiau__type='main_doeuvre')
-    #         )
-    #     ).aggregate(
-    #         total=Sum(F('quantite') * F('prix_unitaire'))
-    #     )['total'] or 0
-    from django.db.models import Q, F, Sum
 
     @property
     def cout_total_espece(self):
-        """
-        Calcul des coûts totaux des matériaux (tous types confondus) avec paiement en espèce :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
         return MateriauBonCommande.objects.filter(
-            bon_commande__partie=self  # Filtre par la partie du bon de commande
-        ).filter(
-            Q(bon_commande__paiement__type_paiement='espece')  # Filtre par le type de paiement 'espece'
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))  # Calcul du total en multipliant quantité et prix unitaire
-        )['total'] or 0  # Renvoie 0 si aucun résultat n'est trouvé
+            bon_commande__partie=self,
+            bon_commande__paiement__type_paiement='espece'
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
+
     @property
     def cout_total_cheque(self):
-        """
-        Calcul des coûts totaux des matériaux (tous types confondus) avec paiement en espèce :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
         return MateriauBonCommande.objects.filter(
-            bon_commande__partie=self  # Filtre par la partie du bon de commande
-        ).filter(
-            Q(bon_commande__paiement__type_paiement='cheque')  # Filtre par le type de paiement 'espece'
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))  # Calcul du total en multipliant quantité et prix unitaire
-        )['total'] or 0  # Renvoie 0 si aucun résultat n'est trouvé
+            bon_commande__partie=self,
+            bon_commande__paiement__type_paiement='cheque'
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
     @property
     def cout_total_materiaux(self):
-        """
-        Calcul des coûts totaux des matériaux (tous types confondus) :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
         return MateriauBonCommande.objects.filter(
             bon_commande__partie=self
         ).filter(
-            Q(
-                Q(option__isnull=False) & Q(option__type__in=['gros_oeuvre', 'finition'])
-            ) | Q(
-                Q(option__isnull=True) & Q(materiau__type__in=['gros_oeuvre', 'finition'])
-            )
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))
-        )['total'] or 0
+            Q(option__isnull=False, option__type__in=['gros_oeuvre', 'finition']) |
+            Q(option__isnull=True, materiau__type__in=['gros_oeuvre', 'finition'])
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
     @property
     def cout_total_materiaux_finition(self):
-        """
-        Calcul des coûts totaux des matériaux pour la finition :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
-        total_materiaux = MateriauBonCommande.objects.filter(
+        return MateriauBonCommande.objects.filter(
             bon_commande__partie=self
         ).filter(
-            Q(
-                Q(option__isnull=False) & Q(option__type='finition')
-            ) | Q(
-                Q(option__isnull=True) & Q(materiau__type='finition')
-            )
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))
-        )['total'] or 0
-        return total_materiaux
+            Q(option__isnull=False, option__type='finition') |
+            Q(option__isnull=True, materiau__type='finition')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
     @property
     def cout_total_materiaux_gros_oeuvre(self):
-        """
-        Calcul des coûts totaux des matériaux pour le gros œuvre :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
-        total_materiaux = MateriauBonCommande.objects.filter(
+        return MateriauBonCommande.objects.filter(
             bon_commande__partie=self
         ).filter(
-            Q(
-                Q(option__isnull=False) & Q(option__type='gros_oeuvre')
-            ) | Q(
-                Q(option__isnull=True) & Q(materiau__type='gros_oeuvre')
-            )
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))
-        )['total'] or 0
-        return total_materiaux
+            Q(option__isnull=False, option__type='gros_oeuvre') |
+            Q(option__isnull=True, materiau__type='gros_oeuvre')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
     @property
     def cout_total_main_oeuvre(self):
-        """
-        Calcul des coûts totaux de la main-d'œuvre :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
-        total_main_oeuvre = MateriauBonCommande.objects.filter(
+        return MateriauBonCommande.objects.filter(
             bon_commande__partie=self
         ).filter(
-            Q(
-                Q(option__isnull=False) & Q(option__type='main_doeuvre')
-            ) | Q(
-                Q(option__isnull=True) & Q(materiau__type='main_doeuvre')
-            )
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))
-        )['total'] or 0
-        return total_main_oeuvre
+            Q(option__isnull=False, option__type='main_doeuvre') |
+            Q(option__isnull=True, materiau__type='main_doeuvre')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
     @property
     def cout_total_main_oeuvre_gros_oeuvre(self):
-        """
-        Calcul des coûts totaux de la main-d'œuvre pour le gros œuvre :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
-        total_main_oeuvre = MateriauBonCommande.objects.filter(
+        return MateriauBonCommande.objects.filter(
             bon_commande__partie=self,
             bon_commande__type='gros_oeuvre'
         ).filter(
-            Q(
-                Q(option__isnull=False) & Q(option__type='main_doeuvre')
-            ) | Q(
-                Q(option__isnull=True) & Q(materiau__type='main_doeuvre')
-            )
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))
-        )['total'] or 0
-        return total_main_oeuvre
+            Q(option__isnull=False, option__type='main_doeuvre') |
+            Q(option__isnull=True, materiau__type='main_doeuvre')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
     @property
     def cout_total_main_oeuvre_finition(self):
-        """
-        Calcul des coûts totaux de la main-d'œuvre pour la finition :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
-        total_main_oeuvre = MateriauBonCommande.objects.filter(
+        return MateriauBonCommande.objects.filter(
             bon_commande__partie=self,
             bon_commande__type='finition'
         ).filter(
-            Q(
-                Q(option__isnull=False) & Q(option__type='main_doeuvre')
-            ) | Q(
-                Q(option__isnull=True) & Q(materiau__type='main_doeuvre')
-            )
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))
-        )['total'] or 0
-        return total_main_oeuvre
-    
-    
+            Q(option__isnull=False, option__type='main_doeuvre') |
+            Q(option__isnull=True, materiau__type='main_doeuvre')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
-    # @property
-    # def cout_total_main_oeuvre(self):
-    #     # Calcul de la main-d'œuvre
-    #     total_main_oeuvre = MateriauBonCommande.objects.filter(
-    #         bon_commande__partie=self,
-    #         option__type='main_doeuvre'
-    #     ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
-    #     return total_main_oeuvre
-    
     def __str__(self):
         return f"{self.type} - {self.chantier.nom}"
 
 
-class   ListeMateriaux(models.Model):
+class ListeMateriaux(models.Model):
     TYPE_CHOICES = [
         ('gros_oeuvre', 'Gros œuvre'),
         ('finition', 'Finition'),
         ('main_doeuvre', 'Main d’œuvre'),
     ]
     name = models.CharField(max_length=50)
-    code = models.CharField(max_length=10,null=True, unique=True) 
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES) 
+    code = models.CharField(max_length=10, null=True, unique=True)
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+
     def __str__(self):
-        return  f"{self.name} - {self.type}"
-    
+        return f"{self.name} - {self.type}"
+
+
 class OptionMateriau(models.Model):
-    name=models.CharField(max_length=50,null=True, blank=True)
-    materiau = models.ForeignKey(ListeMateriaux, related_name='options', on_delete=models.CASCADE)  # Lien avec le matériau
-    valeur = models.CharField(max_length=20)  # Option spécifique (ex : 45, 55)
+    name = models.CharField(max_length=50, null=True, blank=True)
+    materiau = models.ForeignKey(ListeMateriaux, related_name='options', on_delete=models.CASCADE)
+    valeur = models.CharField(max_length=20)
     TYPE_CHOICES = [
         ('gros_oeuvre', 'Gros œuvre'),
         ('finition', 'Finition'),
         ('main_doeuvre', 'Main d’œuvre'),
     ]
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES) 
-    
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['materiau', 'valeur','type'], name='unique_materiau_valeur')
+            models.UniqueConstraint(fields=['materiau', 'valeur', 'type'], name='unique_materiau_valeur')
         ]
+
     def clean(self):
         if self.pk is None and OptionMateriau.objects.filter(
             materiau=self.materiau, valeur=self.valeur, type=self.type
@@ -301,30 +212,21 @@ class OptionMateriau(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.materiau.code} - Option: {self.id}---{self.valeur}/{self.type}"
+
 
 class Paiement(models.Model):
     TYPE_CHOICES = [
         ('espece', 'Espèces'),
         ('cheque', 'Chèque'),
     ]
-
     type_paiement = models.CharField(max_length=10, choices=TYPE_CHOICES)
     date_paiement = models.DateField(auto_now_add=True)
+    numero_cheque = models.CharField(max_length=50, null=True, blank=True, verbose_name="Numéro de chèque")
+    nom_banque = models.CharField(max_length=100, null=True, blank=True, verbose_name="Nom de la banque")
 
-    numero_cheque = models.CharField(
-        max_length=50,
-        null=True,
-        blank=True,
-        verbose_name="Numéro de chèque",
-    )
-    nom_banque = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True,
-        verbose_name="Nom de la banque",
-    )
     @property
     def bon_commande(self):
         return getattr(self, 'boncommande', None)
@@ -351,117 +253,67 @@ class Paiement(models.Model):
         if self.type_paiement == 'cheque':
             return f"Chèque {self.numero_cheque} ({self.nom_banque}) - {self.montant:.2f} DH"
         return f"Espèces - {self.montant:.2f} DH"
-    
+
+
 from django.utils.translation import gettext as _
+
 
 class BonCommande(models.Model):
     TYPE_CHOICES = [
         ('gros_oeuvre', 'Gros Œuvre'),
         ('finition', 'Finition'),
     ]
-    
     reference = models.CharField(
-        max_length=100, 
-        error_messages={
-            'unique': _("Un bon de commande avec cette référence existe déjà.")
-        },
+        max_length=100,
+        error_messages={'unique': _("Un bon de commande avec cette référence existe déjà.")},
     )
     date = models.DateField()
-
-    # Type du bon de commande avec une valeur par défaut
-    type = models.CharField(
-        max_length=20, 
-        choices=TYPE_CHOICES, 
-        default='gros_oeuvre'
-    )
-
-    # Lien avec la partie du chantier
-    partie = models.ForeignKey(
-        'PartieChantier', 
-        on_delete=models.CASCADE, 
-        related_name='bons_commande',
-    )
-
-    # Lien avec le paiement, optionnel
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='gros_oeuvre')
+    partie = models.ForeignKey('PartieChantier', on_delete=models.CASCADE, related_name='bons_commande')
     paiement = models.OneToOneField(
-        'Paiement',
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name='bons_commande',
+        'Paiement', null=True, blank=True, on_delete=models.CASCADE, related_name='bons_commande',
     )
-    
-    # Méthode save pour gérer automatiquement le type si non défini
+
     def save(self, *args, **kwargs):
         if not self.type:
             self.type = self.partie.type
         super().save(*args, **kwargs)
 
-    
     @property
     def cout_total_materiaux(self):
-        """
-        Calcul des coûts totaux des matériaux en vérifiant :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
         return self.materiaux.filter(
-            Q(
-                Q(option__isnull=False) & Q(option__type__in=['gros_oeuvre', 'finition'])
-            ) | Q(
-                Q(option__isnull=True) & Q(materiau__type__in=['gros_oeuvre', 'finition'])
-            )
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))
-        )['total'] or 0
+            Q(option__isnull=False, option__type__in=['gros_oeuvre', 'finition']) |
+            Q(option__isnull=True, materiau__type__in=['gros_oeuvre', 'finition'])
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
     @property
     def cout_total_main_oeuvre(self):
-        """
-        Calcul des coûts totaux de la main-d'œuvre :
-        - Si 'option' existe : utiliser 'option__type'.
-        - Si 'option' est nul : utiliser 'materiau__type'.
-        """
         return self.materiaux.filter(
-            Q(
-                Q(option__isnull=False) & Q(option__type='main_doeuvre')
-            ) | Q(
-                Q(option__isnull=True) & Q(materiau__type='main_doeuvre')
-            )
-        ).aggregate(
-            total=Sum(F('quantite') * F('prix_unitaire'))
-        )['total'] or 0
+            Q(option__isnull=False, option__type='main_doeuvre') |
+            Q(option__isnull=True, materiau__type='main_doeuvre')
+        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0
 
-    
-    
-    
-    # Contraintes d'unicité
+    @property
+    def cout_total_global_BC(self):
+        return self.cout_total_materiaux + self.cout_total_main_oeuvre
+
     class Meta:
-        unique_together = (('reference', 'partie')) 
+        unique_together = (('reference', 'partie'),)
 
-    # Représentation en chaîne
     def __str__(self):
         return self.reference
 
-    # Calcul du coût total global
-    @property   
-    def cout_total_global_BC(self):
-        print('cout_total_main_oeuvre',self.cout_total_main_oeuvre )
-        print('cout_total_materiaux',self.cout_total_materiaux )
-        return self.cout_total_materiaux + self.cout_total_main_oeuvre
-from decimal import Decimal
+
 class MateriauBonCommande(models.Model):
     bon_commande = models.ForeignKey(BonCommande, on_delete=models.CASCADE, related_name='materiaux')
     materiau = models.ForeignKey(ListeMateriaux, null=True, blank=True, on_delete=models.SET_NULL)
     quantite = models.DecimalField(max_digits=10, decimal_places=2)
-    prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2,default=100)
+    prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2, default=100)
     option = models.ForeignKey(
-        OptionMateriau, 
-        null=True, 
-        blank=True, 
-        on_delete=models.SET_NULL, 
+        OptionMateriau, null=True, blank=True, on_delete=models.SET_NULL,
         related_name='materiau_bon_commandes'
     )
+
     @property
     def cout_total(self):
         try:
@@ -473,4 +325,3 @@ class MateriauBonCommande(models.Model):
 
     def __str__(self):
         return f"{self.materiau.name if self.materiau else 'Matériel personnalisé'} - {self.bon_commande.reference}"
-

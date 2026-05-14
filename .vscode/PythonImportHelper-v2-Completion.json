@@ -378,7 +378,7 @@
         "documentation": {}
     },
     {
-        "label": "Sum",
+        "label": "Q",
         "importPath": "django.db.models",
         "description": "django.db.models",
         "isExtraImport": true,
@@ -386,7 +386,7 @@
         "documentation": {}
     },
     {
-        "label": "F",
+        "label": "Prefetch",
         "importPath": "django.db.models",
         "description": "django.db.models",
         "isExtraImport": true,
@@ -418,11 +418,11 @@
         "documentation": {}
     },
     {
-        "label": "gettext",
-        "importPath": "django.utils.translation",
-        "description": "django.utils.translation",
+        "label": "Decimal",
+        "importPath": "decimal",
+        "description": "decimal",
         "isExtraImport": true,
-        "detail": "django.utils.translation",
+        "detail": "decimal",
         "documentation": {}
     },
     {
@@ -434,11 +434,11 @@
         "documentation": {}
     },
     {
-        "label": "serializers",
-        "importPath": "rest_framework",
-        "description": "rest_framework",
+        "label": "gettext",
+        "importPath": "django.utils.translation",
+        "description": "django.utils.translation",
         "isExtraImport": true,
-        "detail": "rest_framework",
+        "detail": "django.utils.translation",
         "documentation": {}
     },
     {
@@ -810,7 +810,7 @@
         "kind": 6,
         "importPath": "chantier.models",
         "description": "chantier.models",
-        "peekOfCode": "class Chantier(models.Model):\n    numero = models.CharField(max_length=50, unique=True)\n    nom = models.CharField(max_length=100, blank=True)\n    @property\n    def cout_total_espece(self):\n        # Somme des coûts des matériaux pour toutes les parties du chantier\n        return sum(partie.cout_total_espece for partie in self.parties.all())\n    @property\n    def cout_total_cheque(self):\n        # Somme des coûts des matériaux pour toutes les parties du chantier",
+        "peekOfCode": "class Chantier(models.Model):\n    numero = models.CharField(max_length=50, unique=True)\n    nom = models.CharField(max_length=100, blank=True)\n    @property\n    def cout_total_espece(self):\n        return MateriauBonCommande.objects.filter(\n            bon_commande__partie__chantier=self,\n            bon_commande__paiement__type_paiement='espece'\n        ).aggregate(total=Sum(F('quantite') * F('prix_unitaire')))['total'] or 0\n    @property",
         "detail": "chantier.models",
         "documentation": {}
     },
@@ -824,15 +824,11 @@
         "documentation": {}
     },
     {
-        "label": {
-            "name": "",
-            "kind": 6,
-            "peekOfCode": "class   ListeMateriaux(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros œuvre'),\n        ('finition', 'Finition'),\n        ('main_doeuvre', 'Main d’œuvre'),\n    ]\n    name = models.CharField(max_length=50)\n    code = models.CharField(max_length=10,null=True, unique=True) \n    type = models.CharField(max_length=20, choices=TYPE_CHOICES) \n    def __str__(self):"
-        },
+        "label": "ListeMateriaux",
         "kind": 6,
         "importPath": "chantier.models",
         "description": "chantier.models",
-        "peekOfCode": "class   ListeMateriaux(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros œuvre'),\n        ('finition', 'Finition'),\n        ('main_doeuvre', 'Main d’œuvre'),\n    ]\n    name = models.CharField(max_length=50)\n    code = models.CharField(max_length=10,null=True, unique=True) \n    type = models.CharField(max_length=20, choices=TYPE_CHOICES) \n    def __str__(self):",
+        "peekOfCode": "class ListeMateriaux(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros œuvre'),\n        ('finition', 'Finition'),\n        ('main_doeuvre', 'Main d’œuvre'),\n    ]\n    name = models.CharField(max_length=50)\n    code = models.CharField(max_length=10, null=True, unique=True)\n    type = models.CharField(max_length=20, choices=TYPE_CHOICES)\n    def __str__(self):",
         "detail": "chantier.models",
         "documentation": {}
     },
@@ -841,7 +837,7 @@
         "kind": 6,
         "importPath": "chantier.models",
         "description": "chantier.models",
-        "peekOfCode": "class OptionMateriau(models.Model):\n    name=models.CharField(max_length=50,null=True, blank=True)\n    materiau = models.ForeignKey(ListeMateriaux, related_name='options', on_delete=models.CASCADE)  # Lien avec le matériau\n    valeur = models.CharField(max_length=20)  # Option spécifique (ex : 45, 55)\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros œuvre'),\n        ('finition', 'Finition'),\n        ('main_doeuvre', 'Main d’œuvre'),\n    ]\n    type = models.CharField(max_length=20, choices=TYPE_CHOICES) ",
+        "peekOfCode": "class OptionMateriau(models.Model):\n    name = models.CharField(max_length=50, null=True, blank=True)\n    materiau = models.ForeignKey(ListeMateriaux, related_name='options', on_delete=models.CASCADE)\n    valeur = models.CharField(max_length=20)\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros œuvre'),\n        ('finition', 'Finition'),\n        ('main_doeuvre', 'Main d’œuvre'),\n    ]\n    type = models.CharField(max_length=20, choices=TYPE_CHOICES)",
         "detail": "chantier.models",
         "documentation": {}
     },
@@ -850,7 +846,7 @@
         "kind": 6,
         "importPath": "chantier.models",
         "description": "chantier.models",
-        "peekOfCode": "class Paiement(models.Model):\n    TYPE_CHOICES = [\n        ('espece', 'Espèces'),\n        ('cheque', 'Chèque'),\n    ]\n    type_paiement = models.CharField(max_length=10, choices=TYPE_CHOICES)\n    date_paiement = models.DateField(auto_now_add=True)\n    numero_cheque = models.CharField(\n        max_length=50,\n        null=True,",
+        "peekOfCode": "class Paiement(models.Model):\n    TYPE_CHOICES = [\n        ('espece', 'Espèces'),\n        ('cheque', 'Chèque'),\n    ]\n    type_paiement = models.CharField(max_length=10, choices=TYPE_CHOICES)\n    date_paiement = models.DateField(auto_now_add=True)\n    numero_cheque = models.CharField(max_length=50, null=True, blank=True, verbose_name=\"Numéro de chèque\")\n    nom_banque = models.CharField(max_length=100, null=True, blank=True, verbose_name=\"Nom de la banque\")\n    @property",
         "detail": "chantier.models",
         "documentation": {}
     },
@@ -859,7 +855,7 @@
         "kind": 6,
         "importPath": "chantier.models",
         "description": "chantier.models",
-        "peekOfCode": "class BonCommande(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros Œuvre'),\n        ('finition', 'Finition'),\n    ]\n    reference = models.CharField(\n        max_length=100, \n        error_messages={\n            'unique': _(\"Un bon de commande avec cette référence existe déjà.\")\n        },",
+        "peekOfCode": "class BonCommande(models.Model):\n    TYPE_CHOICES = [\n        ('gros_oeuvre', 'Gros Œuvre'),\n        ('finition', 'Finition'),\n    ]\n    reference = models.CharField(\n        max_length=100,\n        error_messages={'unique': _(\"Un bon de commande avec cette référence existe déjà.\")},\n    )\n    date = models.DateField()",
         "detail": "chantier.models",
         "documentation": {}
     },
@@ -868,7 +864,7 @@
         "kind": 6,
         "importPath": "chantier.models",
         "description": "chantier.models",
-        "peekOfCode": "class MateriauBonCommande(models.Model):\n    bon_commande = models.ForeignKey(BonCommande, on_delete=models.CASCADE, related_name='materiaux')\n    materiau = models.ForeignKey(ListeMateriaux, null=True, blank=True, on_delete=models.SET_NULL)\n    quantite = models.DecimalField(max_digits=10, decimal_places=2)\n    prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2,default=100)\n    option = models.ForeignKey(\n        OptionMateriau, \n        null=True, \n        blank=True, \n        on_delete=models.SET_NULL, ",
+        "peekOfCode": "class MateriauBonCommande(models.Model):\n    bon_commande = models.ForeignKey(BonCommande, on_delete=models.CASCADE, related_name='materiaux')\n    materiau = models.ForeignKey(ListeMateriaux, null=True, blank=True, on_delete=models.SET_NULL)\n    quantite = models.DecimalField(max_digits=10, decimal_places=2)\n    prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2, default=100)\n    option = models.ForeignKey(\n        OptionMateriau, null=True, blank=True, on_delete=models.SET_NULL,\n        related_name='materiau_bon_commandes'\n    )\n    @property",
         "detail": "chantier.models",
         "documentation": {}
     },
@@ -877,7 +873,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class OptionMateriauSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = OptionMateriau\n        fields = ['id','name','valeur','type','materiau']\n    def create(self, validated_data):\n        materiau = validated_data.get('materiau')  # Vérifier si le materiau est dans les données validées\n        if not materiau:\n            raise serializers.ValidationError(\"Le champ 'materiau' est requis.\")\n        # Créer l'option et l'associer au materiau\n        option = OptionMateriau.objects.create(**validated_data)",
+        "peekOfCode": "class OptionMateriauSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = OptionMateriau\n        fields = ['id', 'name', 'valeur', 'type', 'materiau']\n    def create(self, validated_data):\n        materiau = validated_data.get('materiau')\n        if not materiau:\n            raise serializers.ValidationError(\"Le champ 'materiau' est requis.\")\n        return OptionMateriau.objects.create(**validated_data)\nclass ListeMateriauxSerializer(serializers.ModelSerializer):",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -886,7 +882,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class ListeMateriauxSerializer(serializers.ModelSerializer):\n    options = OptionMateriauSerializer(many=True, read_only=True)\n    class Meta:\n        model = ListeMateriaux\n        fields = ['id', 'code', 'name', 'type', 'options']\n    def update(self, instance, validated_data):\n        options_data = validated_data.pop('options', [])\n        # Mettre à jour les autres champs de ListeMateriaux\n        instance = super().update(instance, validated_data)\n        # Mettre à jour les options",
+        "peekOfCode": "class ListeMateriauxSerializer(serializers.ModelSerializer):\n    options = OptionMateriauSerializer(many=True, read_only=True)\n    class Meta:\n        model = ListeMateriaux\n        fields = ['id', 'code', 'name', 'type', 'options']\n    def update(self, instance, validated_data):\n        options_data = validated_data.pop('options', [])\n        instance = super().update(instance, validated_data)\n        for option_data in options_data:\n            option_id = option_data.get('id', None)",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -913,7 +909,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class PartieChantierSerializer(serializers.ModelSerializer):\n    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_chantier_materiaux_finition = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_chantier_materiaux_gros_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre_finition  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True) \n    cout_total_main_oeuvre_gros_oeuvre  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_espece  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_cheque  = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    class Meta:",
+        "peekOfCode": "class PartieChantierSerializer(serializers.ModelSerializer):\n    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_chantier_materiaux_finition = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_chantier_materiaux_gros_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre_finition = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre_gros_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_espece = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_cheque = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    class Meta:",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -922,7 +918,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class MateriauBonCommandeSerializer(serializers.ModelSerializer):\n    materiau = serializers.CharField(required=False)\n    materiau_id = serializers.CharField(source='materiau.id', read_only=True)\n    materiau_name = serializers.CharField(source='materiau.name', read_only=True)\n    type_materiau = serializers.CharField(source='materiau.type', read_only=True)\n    code = serializers.CharField(source='materiau.code', read_only=True)\n    cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    prix_unitaire = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    option = serializers.SerializerMethodField()\n    option_id = serializers.IntegerField(write_only=True, required=False)  # Nouveau champ pour l'option en entrée",
+        "peekOfCode": "class MateriauBonCommandeSerializer(serializers.ModelSerializer):\n    materiau = serializers.CharField(required=False)\n    materiau_id = serializers.CharField(source='materiau.id', read_only=True)\n    materiau_name = serializers.CharField(source='materiau.name', read_only=True)\n    type_materiau = serializers.CharField(source='materiau.type', read_only=True)\n    code = serializers.CharField(source='materiau.code', read_only=True)\n    cout_total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    prix_unitaire = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    option = serializers.SerializerMethodField()\n    option_id = serializers.IntegerField(write_only=True, required=False)",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -931,7 +927,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class BonCommandeSerializer(serializers.ModelSerializer):\n    materiaux = MateriauBonCommandeSerializer(many=True, read_only=True)\n    paiement = PaiementSerializer()\n    cout_total_materiaux = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_main_oeuvre = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    cout_total_global_BC = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)\n    chantier_id = serializers.CharField(source='partie.chantier.id', read_only=True)\n    chantier_name = serializers.CharField(source='partie.chantier.nom', read_only=True)\n    chantier_numero = serializers.CharField(source='partie.chantier.numero', read_only=True)\n    # cout_total_chantier_espece = serializers.DecimalField(max_digits=10, decimal_places=2,source='partie.chantier.cout_total_chantier_espece', read_only=True)",
+        "peekOfCode": "class BonCommandeSerializer(serializers.ModelSerializer):\n    materiaux = MateriauBonCommandeSerializer(many=True, read_only=True)\n    paiement = PaiementSerializer()\n    chantier_id = serializers.CharField(source='partie.chantier.id', read_only=True)\n    chantier_name = serializers.CharField(source='partie.chantier.nom', read_only=True)\n    chantier_numero = serializers.CharField(source='partie.chantier.numero', read_only=True)\n    partie_type = serializers.CharField(source='partie.type', read_only=True)\n    partie = serializers.CharField(write_only=True)\n    cout_total_materiaux = serializers.SerializerMethodField()\n    cout_total_main_oeuvre = serializers.SerializerMethodField()",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -940,7 +936,7 @@
         "kind": 6,
         "importPath": "chantier.serializers",
         "description": "chantier.serializers",
-        "peekOfCode": "class MateriauTotalSerializer(serializers.Serializer):\n    material_name = serializers.CharField()\n    material_type = serializers.CharField()\n    bon_commande_type =  serializers.CharField()\n    total_quantite = serializers.DecimalField(max_digits=10, decimal_places=2)\n    total_cout = serializers.DecimalField(max_digits=10, decimal_places=2)\n# class ChantierMateriauxCostSerializer(serializers.Serializer):\n#     chantier_name = serializers.CharField()\n#     total_materiaux_cost = serializers.DecimalField(max_digits=10, decimal_places=2)\n#     materiaux_cout = serializers.SerializerMethodField()",
+        "peekOfCode": "class MateriauTotalSerializer(serializers.Serializer):\n    material_name = serializers.CharField()\n    material_type = serializers.CharField()\n    bon_commande_type = serializers.CharField()\n    total_quantite = serializers.DecimalField(max_digits=10, decimal_places=2)\n    total_cout = serializers.DecimalField(max_digits=10, decimal_places=2)",
         "detail": "chantier.serializers",
         "documentation": {}
     },
@@ -967,7 +963,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class ChantierViewSet(viewsets.ModelViewSet):\n    queryset = Chantier.objects.all()\n    serializer_class = ChantierSerializer\nclass OptionMateriauViewSet(viewsets.ModelViewSet):\n    queryset = OptionMateriau.objects.all()\n    serializer_class = OptionMateriauSerializer\n# Gestion des parties de chantier (gros œuvre et finition)\nclass PartieChantierViewSet(viewsets.ModelViewSet):\n    queryset = PartieChantier.objects.all()\n    serializer_class = PartieChantierSerializer",
+        "peekOfCode": "class ChantierViewSet(viewsets.ModelViewSet):\n    queryset = Chantier.objects.all()\n    serializer_class = ChantierSerializer\nclass OptionMateriauViewSet(viewsets.ModelViewSet):\n    queryset = OptionMateriau.objects.all()\n    serializer_class = OptionMateriauSerializer\nclass PartieChantierViewSet(viewsets.ModelViewSet):\n    queryset = PartieChantier.objects.select_related('chantier')\n    serializer_class = PartieChantierSerializer\nclass ListeMateriauxViewSet(viewsets.ModelViewSet):",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -976,7 +972,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class OptionMateriauViewSet(viewsets.ModelViewSet):\n    queryset = OptionMateriau.objects.all()\n    serializer_class = OptionMateriauSerializer\n# Gestion des parties de chantier (gros œuvre et finition)\nclass PartieChantierViewSet(viewsets.ModelViewSet):\n    queryset = PartieChantier.objects.all()\n    serializer_class = PartieChantierSerializer\n# Gestion des matériaux\nclass ListeMateriauxViewSet(viewsets.ModelViewSet):\n    queryset = ListeMateriaux.objects.all()",
+        "peekOfCode": "class OptionMateriauViewSet(viewsets.ModelViewSet):\n    queryset = OptionMateriau.objects.all()\n    serializer_class = OptionMateriauSerializer\nclass PartieChantierViewSet(viewsets.ModelViewSet):\n    queryset = PartieChantier.objects.select_related('chantier')\n    serializer_class = PartieChantierSerializer\nclass ListeMateriauxViewSet(viewsets.ModelViewSet):\n    queryset = ListeMateriaux.objects.all()\n    serializer_class = ListeMateriauxSerializer\n    filter_backends = (DjangoFilterBackend,)",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -985,7 +981,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class PartieChantierViewSet(viewsets.ModelViewSet):\n    queryset = PartieChantier.objects.all()\n    serializer_class = PartieChantierSerializer\n# Gestion des matériaux\nclass ListeMateriauxViewSet(viewsets.ModelViewSet):\n    queryset = ListeMateriaux.objects.all()\n    serializer_class = ListeMateriauxSerializer\n    filter_backends = (DjangoFilterBackend,)\n    filterset_class = ListeMateriauxFilter \n    def create(self, request, *args, **kwargs):",
+        "peekOfCode": "class PartieChantierViewSet(viewsets.ModelViewSet):\n    queryset = PartieChantier.objects.select_related('chantier')\n    serializer_class = PartieChantierSerializer\nclass ListeMateriauxViewSet(viewsets.ModelViewSet):\n    queryset = ListeMateriaux.objects.all()\n    serializer_class = ListeMateriauxSerializer\n    filter_backends = (DjangoFilterBackend,)\n    filterset_class = ListeMateriauxFilter\n    def create(self, request, *args, **kwargs):\n        return super().create(request, *args, **kwargs)",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -994,7 +990,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class ListeMateriauxViewSet(viewsets.ModelViewSet):\n    queryset = ListeMateriaux.objects.all()\n    serializer_class = ListeMateriauxSerializer\n    filter_backends = (DjangoFilterBackend,)\n    filterset_class = ListeMateriauxFilter \n    def create(self, request, *args, **kwargs):\n        # Custom creation logic to handle options\n        return super().create(request, *args, **kwargs)\n    def update(self, request, *args, **kwargs):\n        # Custom update logic to handle options",
+        "peekOfCode": "class ListeMateriauxViewSet(viewsets.ModelViewSet):\n    queryset = ListeMateriaux.objects.all()\n    serializer_class = ListeMateriauxSerializer\n    filter_backends = (DjangoFilterBackend,)\n    filterset_class = ListeMateriauxFilter\n    def create(self, request, *args, **kwargs):\n        return super().create(request, *args, **kwargs)\n    def update(self, request, *args, **kwargs):\n        return super().update(request, *args, **kwargs)\n@api_view(['POST', 'PUT'])",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -1003,7 +999,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class BonCommandeViewSet(viewsets.ModelViewSet):\n    queryset = BonCommande.objects.all()\n    serializer_class = BonCommandeSerializer\n    filter_backends = [DjangoFilterBackend]\n    filterset_class = BonCommandeFilter\n# Vue pour récupérer les bons de commande d'un chantier\nclass ChantierBonCommandeViewSet(viewsets.ViewSet):\n    def list(self, request, chantier_id=None):\n        chantier = get_object_or_404(Chantier, id=chantier_id)\n        bons_commande = BonCommande.objects.filter(partie__chantier=chantier)",
+        "peekOfCode": "class BonCommandeViewSet(viewsets.ModelViewSet):\n    queryset = _bc_queryset()\n    serializer_class = BonCommandeSerializer\n    filter_backends = [DjangoFilterBackend]\n    filterset_class = BonCommandeFilter\n    def get_serializer_context(self):\n        ctx = super().get_serializer_context()\n        ctx['chantier_cache'] = {}\n        ctx['bc_totals_cache'] = {}\n        return ctx",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -1012,7 +1008,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class ChantierBonCommandeViewSet(viewsets.ViewSet):\n    def list(self, request, chantier_id=None):\n        chantier = get_object_or_404(Chantier, id=chantier_id)\n        bons_commande = BonCommande.objects.filter(partie__chantier=chantier)\n        serializer = BonCommandeSerializer(bons_commande, many=True)\n        return Response(serializer.data)\n# Vue pour les détails des bons de commande\nclass BonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)",
+        "peekOfCode": "class ChantierBonCommandeViewSet(viewsets.ViewSet):\n    def list(self, request, chantier_id=None):\n        chantier = get_object_or_404(Chantier, id=chantier_id)\n        bons_commande = _bc_queryset().filter(partie__chantier=chantier)\n        ctx = {'chantier_cache': {}, 'bc_totals_cache': {}, 'request': request}\n        serializer = BonCommandeSerializer(bons_commande, many=True, context=ctx)\n        return Response(serializer.data)\nclass BonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id):\n        bon_commande = get_object_or_404(_bc_queryset(), id=bon_commande_id)",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -1021,7 +1017,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class BonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        serializer = BonCommandeSerializer(bon_commande)\n        return Response(serializer.data)\n    def put(self, request, bon_commande_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        serializer = BonCommandeSerializer(bon_commande, data=request.data, partial=True)\n        if serializer.is_valid():\n            serializer.save()",
+        "peekOfCode": "class BonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id):\n        bon_commande = get_object_or_404(_bc_queryset(), id=bon_commande_id)\n        ctx = {'chantier_cache': {}, 'bc_totals_cache': {}, 'request': request}\n        serializer = BonCommandeSerializer(bon_commande, context=ctx)\n        return Response(serializer.data)\n    def put(self, request, bon_commande_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        serializer = BonCommandeSerializer(bon_commande, data=request.data, partial=True)\n        if serializer.is_valid():",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -1030,7 +1026,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class ChantierMateriauxTotalsView(APIView):\n    def get(self, request, chantier_id, *args, **kwargs):\n        try:\n            # Récupérer le chantier\n            chantier = Chantier.objects.get(id=chantier_id)\n            # Calculer les totaux pour chaque matériau\n            materiaux_totaux = (\n                MateriauBonCommande.objects\n                .filter(bon_commande__partie__chantier=chantier)\n                .values(material_name=F('materiau__name'),material_type=F('materiau__type'),option_type=F('option__type'),",
+        "peekOfCode": "class ChantierMateriauxTotalsView(APIView):\n    def get(self, request, chantier_id, *args, **kwargs):\n        try:\n            chantier = Chantier.objects.get(id=chantier_id)\n            materiaux_totaux = (\n                MateriauBonCommande.objects\n                .filter(bon_commande__partie__chantier=chantier)\n                .values(\n                    material_name=F('materiau__name'),\n                    material_type=F('materiau__type'),",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -1039,7 +1035,7 @@
         "kind": 6,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "class MateriauBonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id, materiau_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)\n        serializer = MateriauBonCommandeSerializer(materiau_bon_commande)\n        return Response(serializer.data)\n    def put(self, request, bon_commande_id, materiau_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)\n        # Gestion de l'option comme un objet",
+        "peekOfCode": "class MateriauBonCommandeDetailView(APIView):\n    def get(self, request, bon_commande_id, materiau_id):\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_bon_commande = get_object_or_404(\n            MateriauBonCommande.objects.select_related('materiau', 'option'),\n            id=materiau_id, bon_commande=bon_commande\n        )\n        serializer = MateriauBonCommandeSerializer(materiau_bon_commande)\n        return Response(serializer.data)\n    def put(self, request, bon_commande_id, materiau_id):",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -1048,7 +1044,7 @@
         "kind": 2,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "def get_options_by_materiau(request, materiau_id):\n    try:\n        # Récupérer le matériau à partir de son ID\n        materiau = ListeMateriaux.objects.get(id=materiau_id)\n    except ListeMateriaux.DoesNotExist:\n        return Response({'detail': 'Materiau not found.'}, status=status.HTTP_404_NOT_FOUND)\n    # Récupérer les options associées au matériau\n    options = materiau.options.all()\n    # Sérialiser les options\n    serializer = OptionMateriauSerializer(options, many=True)",
+        "peekOfCode": "def get_options_by_materiau(request, materiau_id):\n    try:\n        materiau = ListeMateriaux.objects.get(id=materiau_id)\n    except ListeMateriaux.DoesNotExist:\n        return Response({'detail': 'Materiau not found.'}, status=status.HTTP_404_NOT_FOUND)\n    options = materiau.options.all()\n    serializer = OptionMateriauSerializer(options, many=True)\n    return Response(serializer.data, status=status.HTTP_200_OK)\nclass ChantierViewSet(viewsets.ModelViewSet):\n    queryset = Chantier.objects.all()",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -1057,7 +1053,7 @@
         "kind": 2,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "def add_or_update_option(request, materiau_id):\n    try:\n        materiau = ListeMateriaux.objects.get(id=materiau_id)\n    except ListeMateriaux.DoesNotExist:\n        return Response({\"detail\": \"Materiau not found\"}, status=status.HTTP_404_NOT_FOUND)\n    # Si c'est une requête POST, on ajoute une nouvelle option\n    if request.method == 'POST':\n        serializer = OptionMateriauSerializer(data=request.data)\n        if serializer.is_valid():\n            # Relier l'option au matériau avant de sauvegarder",
+        "peekOfCode": "def add_or_update_option(request, materiau_id):\n    try:\n        materiau = ListeMateriaux.objects.get(id=materiau_id)\n    except ListeMateriaux.DoesNotExist:\n        return Response({\"detail\": \"Materiau not found\"}, status=status.HTTP_404_NOT_FOUND)\n    if request.method == 'POST':\n        serializer = OptionMateriauSerializer(data=request.data)\n        if serializer.is_valid():\n            serializer.save(materiau=materiau)\n            return Response(serializer.data, status=status.HTTP_201_CREATED)",
         "detail": "chantier.views",
         "documentation": {}
     },
@@ -1066,7 +1062,7 @@
         "kind": 2,
         "importPath": "chantier.views",
         "description": "chantier.views",
-        "peekOfCode": "def add_materiau_to_bon_commande(request, bon_commande_id):\n    try:\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_id = request.data.get('materiau_id')\n        quantite = request.data.get('quantite')\n        option_id = request.data.get('option_id')\n        prix_unitaire = request.data.get('prix_unitaire')\n        materiau = get_object_or_404(ListeMateriaux, id=materiau_id)\n        print(option_id)\n        if option_id : ",
+        "peekOfCode": "def add_materiau_to_bon_commande(request, bon_commande_id):\n    try:\n        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)\n        materiau_id = request.data.get('materiau_id')\n        quantite = request.data.get('quantite')\n        option_id = request.data.get('option_id')\n        prix_unitaire = request.data.get('prix_unitaire')\n        materiau = get_object_or_404(ListeMateriaux, id=materiau_id)\n        option = get_object_or_404(OptionMateriau, id=option_id) if option_id else None\n        materiau_bon_commande = MateriauBonCommande.objects.create(",
         "detail": "chantier.views",
         "documentation": {}
     },
