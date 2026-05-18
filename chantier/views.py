@@ -119,7 +119,7 @@ class BonCommandeViewSet(viewsets.ModelViewSet):
         return _bc_queryset()
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action in ('retrieve', 'create', 'update', 'partial_update'):
             return BonCommandeSerializer
         return BonCommandeListSerializer
 

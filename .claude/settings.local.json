@@ -2,7 +2,19 @@
   "permissions": {
     "allow": [
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Medinfo\\\\Desktop\\\\Chantiers\\\\chantier_backend\" -Recurse -Directory)",
-      "Bash(Select-Object -First 20)"
+      "Bash(Select-Object -First 20)",
+      "Bash(git rm *)",
+      "Bash(python manage.py runserver)",
+      "Bash(venv\\\\Scripts\\\\python.exe manage.py runserver)",
+      "Bash(ping -n 4 127.0.0.1)",
+      "Bash(powershell -c \"Start-Sleep 3; Get-Content 'C:\\\\Users\\\\Medinfo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Medinfo-Desktop-Chantiers-chantier-backend\\\\b828bf42-b6af-4c84-9c7b-d6328299da9e\\\\tasks\\\\b45nekybt.output' -ErrorAction SilentlyContinue\")",
+      "Bash(venv\\\\Scripts\\\\python manage.py check)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(.\\\\venv\\\\Scripts\\\\python.exe manage.py check)"
     ]
   }
 }
