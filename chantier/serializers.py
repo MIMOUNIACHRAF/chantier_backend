@@ -479,26 +479,24 @@ class BonCommandeSerializer(serializers.ModelSerializer):
                     )
 
             option_valeur = None
-            if mat.get('option_valeur'):
-                if mat['materiau'] == 'autre':
+            raw_opt = mat.get('option_valeur')
+            if raw_opt:
+                if str(raw_opt).isdigit():
+                    # L'option est envoyée par ID — lookup direct, jamais de création implicite
+                    try:
+                        option_valeur = OptionMateriau.objects.get(id=int(raw_opt))
+                    except OptionMateriau.DoesNotExist:
+                        raise serializers.ValidationError(
+                            f"L'option avec l'ID {raw_opt} n'existe pas."
+                        )
+                elif mat.get('option_type'):
+                    # L'option est une valeur texte + type valide → get_or_create
                     option_valeur, _ = OptionMateriau.objects.get_or_create(
                         materiau=liste_materiau,
-                        valeur=mat['option_valeur'],
+                        valeur=raw_opt,
                         type=mat['option_type'],
                     )
-                else:
-                    raw = mat['option_valeur']
-                    try:
-                        if str(raw).isdigit():
-                            option_valeur = OptionMateriau.objects.get(id=raw)
-                        else:
-                            raise ValueError
-                    except (OptionMateriau.DoesNotExist, ValueError):
-                        option_valeur, _ = OptionMateriau.objects.get_or_create(
-                            materiau=liste_materiau,
-                            valeur=raw,
-                            type=mat['option_type'],
-                        )
+                # Si option_valeur est un texte sans option_type : on ignore, option reste None
 
             materiaux_objects.append(MateriauBonCommande(
                 bon_commande=bon_commande,
