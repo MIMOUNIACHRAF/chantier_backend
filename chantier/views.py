@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -12,7 +13,7 @@ from .models import (
     ListeMateriaux,
     BonCommande,
     MateriauBonCommande,
-    OptionMateriau
+    OptionMateriau,
 )
 from .serializers import (
     ChantierSerializer,
@@ -32,11 +33,14 @@ def _bc_queryset():
     ).prefetch_related(
         Prefetch(
             'materiaux',
-            queryset=MateriauBonCommande.objects.select_related('materiau', 'option')
+            queryset=MateriauBonCommande.objects.select_related('materiau', 'option'),
         )
-    )
+    ).order_by('-date', '-id')
 
 
+# ---------------------------------------------------------------------------
+# Matériaux / Options
+# ---------------------------------------------------------------------------
 
 @api_view(['GET'])
 def get_options_by_materiau(request, materiau_id):
@@ -44,37 +48,8 @@ def get_options_by_materiau(request, materiau_id):
         materiau = ListeMateriaux.objects.get(id=materiau_id)
     except ListeMateriaux.DoesNotExist:
         return Response({'detail': 'Materiau not found.'}, status=status.HTTP_404_NOT_FOUND)
-    options = materiau.options.all()
-    serializer = OptionMateriauSerializer(options, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class ChantierViewSet(viewsets.ModelViewSet):
-    queryset = Chantier.objects.all()
-    serializer_class = ChantierSerializer
-
-
-class OptionMateriauViewSet(viewsets.ModelViewSet):
-    queryset = OptionMateriau.objects.all()
-    serializer_class = OptionMateriauSerializer
-
-
-class PartieChantierViewSet(viewsets.ModelViewSet):
-    queryset = PartieChantier.objects.select_related('chantier')
-    serializer_class = PartieChantierSerializer
-
-
-class ListeMateriauxViewSet(viewsets.ModelViewSet):
-    queryset = ListeMateriaux.objects.all()
-    serializer_class = ListeMateriauxSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = ListeMateriauxFilter
-
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+    serializer = OptionMateriauSerializer(materiau.options.all(), many=True)
+    return Response(serializer.data)
 
 
 @api_view(['POST', 'PUT'])
@@ -82,7 +57,7 @@ def add_or_update_option(request, materiau_id):
     try:
         materiau = ListeMateriaux.objects.get(id=materiau_id)
     except ListeMateriaux.DoesNotExist:
-        return Response({"detail": "Materiau not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'detail': 'Materiau not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'POST':
         serializer = OptionMateriauSerializer(data=request.data)
@@ -91,23 +66,57 @@ def add_or_update_option(request, materiau_id):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'PUT':
-        option_id = request.data.get('id')
-        try:
-            option = OptionMateriau.objects.get(id=option_id, materiau=materiau)
-        except OptionMateriau.DoesNotExist:
-            return Response({"detail": "Option not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = OptionMateriauSerializer(option, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # PUT
+    option_id = request.data.get('id')
+    try:
+        option = OptionMateriau.objects.get(id=option_id, materiau=materiau)
+    except OptionMateriau.DoesNotExist:
+        return Response({'detail': 'Option not found.'}, status=status.HTTP_404_NOT_FOUND)
+    serializer = OptionMateriauSerializer(option, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ---------------------------------------------------------------------------
+# ViewSets
+# ---------------------------------------------------------------------------
+
+class ChantierViewSet(viewsets.ModelViewSet):
+    queryset = Chantier.objects.all().order_by('numero')
+    serializer_class = ChantierSerializer
+
+
+class OptionMateriauViewSet(viewsets.ModelViewSet):
+    queryset = OptionMateriau.objects.select_related('materiau').order_by('id')
+    serializer_class = OptionMateriauSerializer
+
+
+class PartieChantierViewSet(viewsets.ModelViewSet):
+    queryset = PartieChantier.objects.select_related('chantier').order_by('id')
+    serializer_class = PartieChantierSerializer
+
+
+class ListeMateriauxViewSet(viewsets.ModelViewSet):
+    queryset = ListeMateriaux.objects.prefetch_related('options').order_by('code')
+    serializer_class = ListeMateriauxSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = ListeMateriauxFilter
 
 
 class BonCommandeViewSet(viewsets.ModelViewSet):
-    queryset = _bc_queryset()
+    """
+    GET  /api/bons-commande/          → liste paginée (30/page), sérialiseur léger
+    GET  /api/bons-commande/{id}/     → détail complet avec matériaux
+    POST /api/bons-commande/          → création
+    PUT  /api/bons-commande/{id}/     → mise à jour
+    """
     filter_backends = [DjangoFilterBackend]
     filterset_class = BonCommandeFilter
+
+    def get_queryset(self):
+        return _bc_queryset()
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -118,16 +127,29 @@ class BonCommandeViewSet(viewsets.ModelViewSet):
         ctx = super().get_serializer_context()
         ctx['chantier_cache'] = {}
         ctx['bc_totals_cache'] = {}
+        ctx['bc_list_cache'] = {}
         return ctx
 
 
 class ChantierBonCommandeViewSet(viewsets.ViewSet):
+    """GET /api/chantier/{chantier_id}/bons-commande/?page=N"""
     def list(self, request, chantier_id=None):
         chantier = get_object_or_404(Chantier, id=chantier_id)
-        bons_commande = _bc_queryset().filter(partie__chantier=chantier)
-        serializer = BonCommandeListSerializer(bons_commande, many=True, context={'request': request})
+        qs = _bc_queryset().filter(partie__chantier=chantier)
+        paginator = PageNumberPagination()
+        paginator.page_size = 30
+        page = paginator.paginate_queryset(qs, request)
+        ctx = {'request': request, 'bc_list_cache': {}}
+        if page is not None:
+            serializer = BonCommandeListSerializer(page, many=True, context=ctx)
+            return paginator.get_paginated_response(serializer.data)
+        serializer = BonCommandeListSerializer(qs, many=True, context=ctx)
         return Response(serializer.data)
 
+
+# ---------------------------------------------------------------------------
+# Vues détail (APIView)
+# ---------------------------------------------------------------------------
 
 class BonCommandeDetailView(APIView):
     def get(self, request, bon_commande_id):
@@ -146,98 +168,88 @@ class BonCommandeDetailView(APIView):
 
 
 class ChantierMateriauxTotalsView(APIView):
-    def get(self, request, chantier_id, *args, **kwargs):
-        try:
-            chantier = Chantier.objects.get(id=chantier_id)
-            materiaux_totaux = (
-                MateriauBonCommande.objects
-                .filter(bon_commande__partie__chantier=chantier)
-                .values(
-                    material_name=F('materiau__name'),
-                    material_type=F('materiau__type'),
-                    option_type=F('option__type'),
-                    option_valeur=F('option__valeur'),
-                    material_code=F('materiau__code'),
-                    option_name=F('option__name'),
-                    bon_commande_type=F('bon_commande__type'),
-                )
-                .annotate(
-                    total_quantite=Sum('quantite'),
-                    total_cout=Sum(F('quantite') * F('prix_unitaire'))
-                )
+    def get(self, request, chantier_id):
+        chantier = get_object_or_404(Chantier, id=chantier_id)
+        materiaux_totaux = (
+            MateriauBonCommande.objects
+            .filter(bon_commande__partie__chantier=chantier)
+            .values(
+                material_name=F('materiau__name'),
+                material_type=F('materiau__type'),
+                option_type=F('option__type'),
+                option_valeur=F('option__valeur'),
+                material_code=F('materiau__code'),
+                option_name=F('option__name'),
+                bon_commande_type=F('bon_commande__type'),
             )
-            response_data = {
-                "chantier_id": chantier.id,
-                "chantier_name": chantier.nom,
-                "chantier_numero": chantier.numero,
-                "cout_total_materiaux": chantier.cout_total_global,
-                "materiaux_totaux": list(materiaux_totaux),
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
-        except Chantier.DoesNotExist:
-            return Response({"error": "Chantier non trouvé"}, status=status.HTTP_404_NOT_FOUND)
-
-
-from rest_framework.exceptions import ValidationError
+            .annotate(
+                total_quantite=Sum('quantite'),
+                total_cout=Sum(F('quantite') * F('prix_unitaire')),
+            )
+        )
+        return Response({
+            'chantier_id': chantier.id,
+            'chantier_name': chantier.nom,
+            'chantier_numero': chantier.numero,
+            'cout_total_materiaux': chantier.cout_total_global,
+            'materiaux_totaux': list(materiaux_totaux),
+        })
 
 
 class MateriauBonCommandeDetailView(APIView):
     def get(self, request, bon_commande_id, materiau_id):
         bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
-        materiau_bon_commande = get_object_or_404(
+        mbc = get_object_or_404(
             MateriauBonCommande.objects.select_related('materiau', 'option'),
-            id=materiau_id, bon_commande=bon_commande
+            id=materiau_id, bon_commande=bon_commande,
         )
-        serializer = MateriauBonCommandeSerializer(materiau_bon_commande)
-        return Response(serializer.data)
+        return Response(MateriauBonCommandeSerializer(mbc).data)
 
     def put(self, request, bon_commande_id, materiau_id):
         bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
-        materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)
+        mbc = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande=bon_commande)
 
-        option_id = request.data.get('option')
+        data = request.data.copy()
+        option_id = data.get('option')
         if option_id:
-            try:
-                request.data['option'] = OptionMateriau.objects.get(id=option_id).id
-            except OptionMateriau.DoesNotExist:
-                return Response({"error": "L'option spécifiée n'existe pas."}, status=status.HTTP_400_BAD_REQUEST)
+            if not OptionMateriau.objects.filter(id=option_id).exists():
+                return Response(
+                    {'error': "L'option spécifiée n'existe pas."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         else:
-            request.data['option'] = None
+            data['option'] = None
 
-        serializer = MateriauBonCommandeSerializer(materiau_bon_commande, data=request.data, partial=True)
+        serializer = MateriauBonCommandeSerializer(mbc, data=data, partial=True)
         if serializer.is_valid():
-            instance = serializer.save()
+            serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# ---------------------------------------------------------------------------
+# Matériaux d'un bon de commande
+# ---------------------------------------------------------------------------
+
 @api_view(['POST'])
 def add_materiau_to_bon_commande(request, bon_commande_id):
-    try:
-        bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
-        materiau_id = request.data.get('materiau_id')
-        quantite = request.data.get('quantite')
-        option_id = request.data.get('option_id')
-        prix_unitaire = request.data.get('prix_unitaire')
+    bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
+    materiau = get_object_or_404(ListeMateriaux, id=request.data.get('materiau_id'))
+    option_id = request.data.get('option_id')
+    option = get_object_or_404(OptionMateriau, id=option_id) if option_id else None
 
-        materiau = get_object_or_404(ListeMateriaux, id=materiau_id)
-        option = get_object_or_404(OptionMateriau, id=option_id) if option_id else None
-
-        materiau_bon_commande = MateriauBonCommande.objects.create(
-            bon_commande=bon_commande,
-            materiau=materiau,
-            quantite=quantite,
-            option=option,
-            prix_unitaire=prix_unitaire,
-        )
-        serializer = MateriauBonCommandeSerializer(materiau_bon_commande)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    mbc = MateriauBonCommande.objects.create(
+        bon_commande=bon_commande,
+        materiau=materiau,
+        quantite=request.data.get('quantite'),
+        option=option,
+        prix_unitaire=request.data.get('prix_unitaire'),
+    )
+    return Response(MateriauBonCommandeSerializer(mbc).data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['DELETE'])
 def delete_materiau_from_bon_commande(request, bon_commande_id, materiau_id):
-    materiau_bon_commande = get_object_or_404(MateriauBonCommande, id=materiau_id)
-    materiau_bon_commande.delete()
-    return Response({"message": "Matériau supprimé avec succès."}, status=status.HTTP_204_NO_CONTENT)
+    mbc = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande_id=bon_commande_id)
+    mbc.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
