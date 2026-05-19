@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from rest_framework import viewsets
@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
-from django.db.models import Prefetch, Sum, F, Q, Case, When, DecimalField, Value
+from django.db.models import Prefetch, Sum, F, Q, Case, When, DecimalField, Value, Count
 from django.db.models.functions import Coalesce
 from .models import (
     Chantier,
@@ -257,6 +257,8 @@ class DashboardView(APIView):
     def get(self, request):
         today = date.today()
         month_start = today.replace(day=1)
+        prev_month_end = month_start - timedelta(days=1)
+        prev_month_start = prev_month_end.replace(day=1)
 
         _D = DecimalField(max_digits=15, decimal_places=2)
         _Z = Value(Decimal('0'), output_field=_D)
@@ -267,20 +269,38 @@ class DashboardView(APIView):
                 _Z,
             )
 
-        fin = Q(option__isnull=False, option__type='finition')    | Q(option__isnull=True, materiau__type='finition')
-        go  = Q(option__isnull=False, option__type='gros_oeuvre') | Q(option__isnull=True, materiau__type='gros_oeuvre')
-        mo  = Q(option__isnull=False, option__type='main_doeuvre')| Q(option__isnull=True, materiau__type='main_doeuvre')
+        fin = Q(option__isnull=False, option__type='finition')     | Q(option__isnull=True, materiau__type='finition')
+        go  = Q(option__isnull=False, option__type='gros_oeuvre')  | Q(option__isnull=True, materiau__type='gros_oeuvre')
+        mo  = Q(option__isnull=False, option__type='main_doeuvre') | Q(option__isnull=True, materiau__type='main_doeuvre')
 
         totals = MateriauBonCommande.objects.aggregate(
-            ca_total  = Coalesce(Sum(F('quantite') * F('prix_unitaire'), output_field=_D), _Z),
-            ca_espece = csum(Q(bon_commande__paiement__type_paiement='espece')),
-            ca_cheque = csum(Q(bon_commande__paiement__type_paiement='cheque')),
-            ca_go     = csum(go),
-            ca_fin    = csum(fin),
-            ca_mo     = csum(mo),
-            ca_mois   = csum(Q(bon_commande__date__gte=month_start)),
+            ca_total       = Coalesce(Sum(F('quantite') * F('prix_unitaire'), output_field=_D), _Z),
+            ca_espece      = csum(Q(bon_commande__paiement__type_paiement='espece')),
+            ca_cheque      = csum(Q(bon_commande__paiement__type_paiement='cheque')),
+            ca_go          = csum(go),
+            ca_fin         = csum(fin),
+            ca_mo          = csum(mo),
+            ca_mois        = csum(Q(bon_commande__date__gte=month_start)),
+            ca_mois_precedent = csum(Q(
+                bon_commande__date__gte=prev_month_start,
+                bon_commande__date__lte=prev_month_end,
+            )),
         )
 
+        # Budget total prévu sur tous les chantiers
+        budget_total = Chantier.objects.aggregate(
+            total=Coalesce(Sum('budget_previsionnel', output_field=_D), _Z)
+        )['total']
+
+        # Chantiers par statut
+        chantiers_statut_qs = Chantier.objects.values('statut').annotate(count=Count('id'))
+        chantiers_by_statut = {r['statut']: r['count'] for r in chantiers_statut_qs}
+
+        # Bons de commande par statut
+        bons_statut_qs = BonCommande.objects.values('statut').annotate(count=Count('id'))
+        bons_by_statut = {r['statut']: r['count'] for r in bons_statut_qs}
+
+        # Top 5 chantiers enrichis
         top_chantiers = list(
             Chantier.objects.annotate(
                 ca=Coalesce(
@@ -290,28 +310,39 @@ class DashboardView(APIView):
                         output_field=_D,
                     ),
                     _Z,
-                )
-            ).order_by('-ca').values('id', 'nom', 'numero', 'ca')[:5]
+                ),
+                nb_bons=Count('parties__bons_commande', distinct=True),
+            ).order_by('-ca').values(
+                'id', 'nom', 'numero', 'ca', 'statut',
+                'budget_previsionnel', 'nb_bons'
+            )[:5]
         )
 
         ctx = {'request': request, 'bc_list_cache': {}}
-        derniers = BonCommandeListSerializer(_bc_queryset()[:6], many=True, context=ctx).data
+        derniers = BonCommandeListSerializer(_bc_queryset()[:8], many=True, context=ctx).data
 
         return Response({
             'stats': {
-                'total_chantiers':    Chantier.objects.count(),
-                'total_bons':         BonCommande.objects.count(),
-                'bons_ce_mois':       BonCommande.objects.filter(date__gte=month_start).count(),
-                'ca_total':           totals['ca_total'],
-                'ca_espece':          totals['ca_espece'],
-                'ca_cheque':          totals['ca_cheque'],
-                'ca_ce_mois':         totals['ca_mois'],
+                'total_chantiers':      Chantier.objects.count(),
+                'chantiers_en_cours':   chantiers_by_statut.get('en_cours', 0),
+                'total_bons':           BonCommande.objects.count(),
+                'bons_ce_mois':         BonCommande.objects.filter(date__gte=month_start).count(),
+                'bons_en_attente':      bons_by_statut.get('en_attente', 0),
+                'bons_livre':           bons_by_statut.get('livre', 0),
+                'ca_total':             totals['ca_total'],
+                'ca_espece':            totals['ca_espece'],
+                'ca_cheque':            totals['ca_cheque'],
+                'ca_ce_mois':           totals['ca_mois'],
+                'ca_mois_precedent':    totals['ca_mois_precedent'],
+                'budget_total_prevu':   budget_total,
             },
             'repartition': {
-                'gros_oeuvre': totals['ca_go'],
-                'finition':    totals['ca_fin'],
-                'main_doeuvre':totals['ca_mo'],
+                'gros_oeuvre':  totals['ca_go'],
+                'finition':     totals['ca_fin'],
+                'main_doeuvre': totals['ca_mo'],
             },
+            'chantiers_by_statut':    chantiers_by_statut,
+            'bons_by_statut':         bons_by_statut,
             'top_chantiers':          top_chantiers,
             'derniers_bons_commande': derniers,
         })
