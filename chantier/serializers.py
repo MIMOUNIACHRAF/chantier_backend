@@ -155,16 +155,22 @@ class ChantierSerializer(serializers.ModelSerializer):
     cout_total_global                  = serializers.SerializerMethodField()
     cout_total_espece                  = serializers.SerializerMethodField()
     cout_total_cheque                  = serializers.SerializerMethodField()
+    nb_bons_commande                   = serializers.SerializerMethodField()
 
     class Meta:
         model = Chantier
         fields = [
-            'id', 'numero', 'nom',
+            'id', 'numero', 'nom', 'client', 'adresse', 'statut',
+            'budget_previsionnel', 'date_debut', 'date_fin_prevue',
             'cout_total_materiaux', 'cout_total_main_oeuvre',
             'cout_total_materiaux_gros_oeuvre', 'cout_total_materiaux_finition',
             'cout_total_main_oeuvre_finition', 'cout_total_main_oeuvre_gros_oeuvre',
             'cout_total_global', 'cout_total_espece', 'cout_total_cheque',
+            'nb_bons_commande',
         ]
+
+    def get_nb_bons_commande(self, obj):
+        return BonCommande.objects.filter(partie__chantier=obj).count()
 
     def _totals(self, obj):
         cache = self.context.setdefault('chantier_totals_cache', {})
@@ -318,7 +324,8 @@ class BonCommandeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BonCommande
         fields = [
-            'id', 'reference', 'date', 'type',
+            'id', 'reference', 'date', 'type', 'statut', 'fournisseur',
+            'date_livraison', 'notes',
             'chantier_id', 'chantier_name', 'chantier_numero',
             'partie_type', 'cout_total_global_BC', 'nb_materiaux', 'paiement',
         ]
@@ -371,7 +378,8 @@ class BonCommandeSerializer(serializers.ModelSerializer):
     class Meta:
         model = BonCommande
         fields = [
-            'id', 'reference', 'date', 'partie', 'type',
+            'id', 'reference', 'date', 'partie', 'type', 'statut',
+            'fournisseur', 'notes', 'date_livraison',
             'chantier_id', 'chantier_name', 'chantier_numero', 'partie_type',
             'cout_total_global_BC', 'cout_total_materiaux', 'cout_total_main_oeuvre',
             'cout_total_chantier_global', 'cout_total_chantier_materiaux',
@@ -457,6 +465,12 @@ class BonCommandeSerializer(serializers.ModelSerializer):
             date=validated_data['date'],
             type=partie_type,
             partie=validated_data['partie'],
+            defaults={
+                'statut':         initial.get('statut', 'en_attente'),
+                'fournisseur':    initial.get('fournisseur') or None,
+                'notes':          initial.get('notes') or None,
+                'date_livraison': initial.get('date_livraison') or None,
+            },
         )
 
         if paiement_data:
@@ -521,6 +535,11 @@ class BonCommandeSerializer(serializers.ModelSerializer):
             else:
                 paiement = Paiement.objects.create(**paiement_data)
                 instance.paiement = paiement
+
+        initial = self.initial_data
+        for field in ('statut', 'fournisseur', 'notes', 'date_livraison'):
+            if field in initial:
+                setattr(instance, field, initial[field] or None)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

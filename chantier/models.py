@@ -5,8 +5,20 @@ from decimal import Decimal
 
 
 class Chantier(models.Model):
-    numero = models.CharField(max_length=50, unique=True)
-    nom = models.CharField(max_length=100, blank=True)
+    STATUT_CHOICES = [
+        ('planifie',  'Planifié'),
+        ('en_cours',  'En cours'),
+        ('pause',     'En pause'),
+        ('termine',   'Terminé'),
+    ]
+    numero             = models.CharField(max_length=50, unique=True)
+    nom                = models.CharField(max_length=100, blank=True)
+    client             = models.CharField(max_length=150, null=True, blank=True)
+    adresse            = models.CharField(max_length=250, null=True, blank=True)
+    budget_previsionnel= models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    date_debut         = models.DateField(null=True, blank=True)
+    date_fin_prevue    = models.DateField(null=True, blank=True)
+    statut             = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_cours')
 
     @property
     def cout_total_espece(self):
@@ -263,13 +275,23 @@ class BonCommande(models.Model):
         ('gros_oeuvre', 'Gros Œuvre'),
         ('finition', 'Finition'),
     ]
-    reference = models.CharField(
+    STATUT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('commande',   'Commandé'),
+        ('livre',      'Livré'),
+        ('annule',     'Annulé'),
+    ]
+    reference  = models.CharField(
         max_length=100,
         error_messages={'unique': _("Un bon de commande avec cette référence existe déjà.")},
     )
-    date = models.DateField()
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='gros_oeuvre')
-    partie = models.ForeignKey('PartieChantier', on_delete=models.CASCADE, related_name='bons_commande')
+    date              = models.DateField()
+    type              = models.CharField(max_length=20, choices=TYPE_CHOICES, default='gros_oeuvre')
+    statut            = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    fournisseur       = models.CharField(max_length=150, null=True, blank=True)
+    notes             = models.TextField(null=True, blank=True)
+    date_livraison    = models.DateField(null=True, blank=True)
+    partie   = models.ForeignKey('PartieChantier', on_delete=models.CASCADE, related_name='bons_commande')
     paiement = models.OneToOneField(
         'Paiement', null=True, blank=True, on_delete=models.CASCADE, related_name='bons_commande',
     )
