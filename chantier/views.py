@@ -1,10 +1,11 @@
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
 from django.db.models import Prefetch, Sum, F
 from .models import (
@@ -43,6 +44,7 @@ def _bc_queryset():
 # ---------------------------------------------------------------------------
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_options_by_materiau(request, materiau_id):
     try:
         materiau = ListeMateriaux.objects.get(id=materiau_id)
@@ -53,6 +55,7 @@ def get_options_by_materiau(request, materiau_id):
 
 
 @api_view(['POST', 'PUT'])
+@permission_classes([IsAuthenticated])
 def add_or_update_option(request, materiau_id):
     try:
         materiau = ListeMateriaux.objects.get(id=materiau_id)
@@ -84,21 +87,25 @@ def add_or_update_option(request, materiau_id):
 # ---------------------------------------------------------------------------
 
 class ChantierViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Chantier.objects.all().order_by('numero')
     serializer_class = ChantierSerializer
 
 
 class OptionMateriauViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = OptionMateriau.objects.select_related('materiau').order_by('id')
     serializer_class = OptionMateriauSerializer
 
 
 class PartieChantierViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = PartieChantier.objects.select_related('chantier').order_by('id')
     serializer_class = PartieChantierSerializer
 
 
 class ListeMateriauxViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = ListeMateriaux.objects.prefetch_related('options').order_by('code')
     serializer_class = ListeMateriauxSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -112,6 +119,7 @@ class BonCommandeViewSet(viewsets.ModelViewSet):
     POST /api/bons-commande/          → création
     PUT  /api/bons-commande/{id}/     → mise à jour
     """
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = BonCommandeFilter
 
@@ -133,6 +141,8 @@ class BonCommandeViewSet(viewsets.ModelViewSet):
 
 class ChantierBonCommandeViewSet(viewsets.ViewSet):
     """GET /api/chantier/{chantier_id}/bons-commande/?page=N"""
+    permission_classes = [IsAuthenticated]
+
     def list(self, request, chantier_id=None):
         chantier = get_object_or_404(Chantier, id=chantier_id)
         qs = _bc_queryset().filter(partie__chantier=chantier)
@@ -152,6 +162,8 @@ class ChantierBonCommandeViewSet(viewsets.ViewSet):
 # ---------------------------------------------------------------------------
 
 class BonCommandeDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, bon_commande_id):
         bon_commande = get_object_or_404(_bc_queryset(), id=bon_commande_id)
         ctx = {'chantier_cache': {}, 'bc_totals_cache': {}, 'request': request}
@@ -168,6 +180,8 @@ class BonCommandeDetailView(APIView):
 
 
 class ChantierMateriauxTotalsView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, chantier_id):
         chantier = get_object_or_404(Chantier, id=chantier_id)
         materiaux_totaux = (
@@ -197,6 +211,8 @@ class ChantierMateriauxTotalsView(APIView):
 
 
 class MateriauBonCommandeDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, bon_commande_id, materiau_id):
         bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
         mbc = get_object_or_404(
@@ -232,6 +248,7 @@ class MateriauBonCommandeDetailView(APIView):
 # ---------------------------------------------------------------------------
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def add_materiau_to_bon_commande(request, bon_commande_id):
     bon_commande = get_object_or_404(BonCommande, id=bon_commande_id)
     materiau = get_object_or_404(ListeMateriaux, id=request.data.get('materiau_id'))
@@ -249,6 +266,7 @@ def add_materiau_to_bon_commande(request, bon_commande_id):
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_materiau_from_bon_commande(request, bon_commande_id, materiau_id):
     mbc = get_object_or_404(MateriauBonCommande, id=materiau_id, bon_commande_id=bon_commande_id)
     mbc.delete()
