@@ -44,14 +44,7 @@ MIDDLEWARE = [
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4200",
-    "http://127.0.0.1:4200",
-    "http://192.168.3.205:4200",
-    # Ajouter ici le domaine Vercel de production, ex :
-    # "https://chantier-frontend.vercel.app",
-]
-CORS_ALLOW_ALL_ORIGINS = False   # désactivé : liste blanche uniquement
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 # ─── DRF + JWT ────────────────────────────────────────────────────────────────
