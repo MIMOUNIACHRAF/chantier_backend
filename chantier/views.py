@@ -1,3 +1,6 @@
+from datetime import date
+from decimal import Decimal
+
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,7 +10,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
-from django.db.models import Prefetch, Sum, F
+from django.db.models import Prefetch, Sum, F, Q, Case, When, DecimalField, Value
+from django.db.models.functions import Coalesce
 from .models import (
     Chantier,
     PartieChantier,
@@ -241,6 +245,76 @@ class MateriauBonCommandeDetailView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
+class DashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        today = date.today()
+        month_start = today.replace(day=1)
+
+        _D = DecimalField(max_digits=15, decimal_places=2)
+        _Z = Value(Decimal('0'), output_field=_D)
+
+        def csum(cond):
+            return Coalesce(
+                Sum(Case(When(cond, then=F('quantite') * F('prix_unitaire')), output_field=_D)),
+                _Z,
+            )
+
+        fin = Q(option__isnull=False, option__type='finition')    | Q(option__isnull=True, materiau__type='finition')
+        go  = Q(option__isnull=False, option__type='gros_oeuvre') | Q(option__isnull=True, materiau__type='gros_oeuvre')
+        mo  = Q(option__isnull=False, option__type='main_doeuvre')| Q(option__isnull=True, materiau__type='main_doeuvre')
+
+        totals = MateriauBonCommande.objects.aggregate(
+            ca_total  = Coalesce(Sum(F('quantite') * F('prix_unitaire'), output_field=_D), _Z),
+            ca_espece = csum(Q(bon_commande__paiement__type_paiement='espece')),
+            ca_cheque = csum(Q(bon_commande__paiement__type_paiement='cheque')),
+            ca_go     = csum(go),
+            ca_fin    = csum(fin),
+            ca_mo     = csum(mo),
+            ca_mois   = csum(Q(bon_commande__date__gte=month_start)),
+        )
+
+        top_chantiers = list(
+            Chantier.objects.annotate(
+                ca=Coalesce(
+                    Sum(
+                        F('parties__bons_commande__materiaux__quantite') *
+                        F('parties__bons_commande__materiaux__prix_unitaire'),
+                        output_field=_D,
+                    ),
+                    _Z,
+                )
+            ).order_by('-ca').values('id', 'nom', 'numero', 'ca')[:5]
+        )
+
+        ctx = {'request': request, 'bc_list_cache': {}}
+        derniers = BonCommandeListSerializer(_bc_queryset()[:6], many=True, context=ctx).data
+
+        return Response({
+            'stats': {
+                'total_chantiers':    Chantier.objects.count(),
+                'total_bons':         BonCommande.objects.count(),
+                'bons_ce_mois':       BonCommande.objects.filter(date__gte=month_start).count(),
+                'ca_total':           totals['ca_total'],
+                'ca_espece':          totals['ca_espece'],
+                'ca_cheque':          totals['ca_cheque'],
+                'ca_ce_mois':         totals['ca_mois'],
+            },
+            'repartition': {
+                'gros_oeuvre': totals['ca_go'],
+                'finition':    totals['ca_fin'],
+                'main_doeuvre':totals['ca_mo'],
+            },
+            'top_chantiers':          top_chantiers,
+            'derniers_bons_commande': derniers,
+        })
 
 
 # ---------------------------------------------------------------------------
